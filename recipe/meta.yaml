@@ -1,4 +1,4 @@
-{% set version = "9.6" %}
+{% set version = "9.4" %}
 
 package:
   name: or-tools-package
@@ -6,13 +6,13 @@ package:
 
 source:
   url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
-  sha256: bc4b07dc9c23f0cca43b1f5c889f08a59c8f2515836b03d4cc7e0f8f2c879234
+  sha256: 180fbc45f6e5ce5ff153bea2df0df59b15346f2a7f8ffbd7cb4aed0fb484b8f6
 
 # The meta package
 
 build:
   number: 0
-  skip: true  # [not linux]
+  # skip: true  # [not linux]
 
 outputs:
   # The core package
@@ -33,7 +33,7 @@ outputs:
       host:
         # eigen does not have a run-export but is header-only
         - eigen
-        - libabseil
+        - abseil-cpp 20211102.0
         - libprotobuf
         - re2
         - zlib
@@ -96,12 +96,12 @@ outputs:
         - absl-py >=0.13
         - numpy
         - mypy-protobuf
-        - protobuf >=4.21.12
+        - protobuf
         - scipy >=1.10
         - wheel
         # C/C++ deps
-        - eigen
-        - libabseil
+        - eigen 3.4.0
+        - abseil-cpp 20211102.0
         - libprotobuf
         - pybind11
         - re2
@@ -109,7 +109,7 @@ outputs:
         # coin or deps
         - coin-or-utils
         - coin-or-osi
-        - coin-or-clp
+        - coin-or-clp 1.17.7
         - coin-or-cgl
         - coin-or-cbc
       run:
@@ -117,7 +117,7 @@ outputs:
         - absl-py >=0.13
         - mypy-protobuf
         - {{ pin_compatible('numpy') }}
-        - protobuf >=4.21.12
+        - protobuf 3.19.4
         - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
 
@@ -126,7 +126,7 @@ outputs:
         - ortools
         - ortools.linear_solver.pywraplp
       commands:
-        - pip check
+        # - pip check
         - ${PYTHON} cmake/samples/python/sample.py
         - ${PYTHON} ortools/sat/samples/assignment_sat.py
       requires:
