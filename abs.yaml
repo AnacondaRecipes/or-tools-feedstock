@@ -1,3 +1,6 @@
 channels:
     build: or-tools
 aggregate_check: false
+build_parameters:
+  - "--suppress-variables"
+  - "--error-overlinking"
