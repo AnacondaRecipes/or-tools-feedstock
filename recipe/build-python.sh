@@ -9,6 +9,8 @@ cmake -G Ninja \
       -DCMAKE_INSTALL_PREFIX=$PREFIX \
       -DBUILD_SHARED_LIBS=ON \
       -DBUILD_DEPS=OFF \
+      -DBUILD_Eigen3=ON \
+      -DBUILD_absl=ON \
       -DUSE_SCIP=OFF \
       -S. \
       -Bbuild \
