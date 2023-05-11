@@ -1,0 +1,3 @@
+channels:
+    build: or-tools
+aggregate_check: false
