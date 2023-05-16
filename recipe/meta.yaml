@@ -34,7 +34,7 @@ outputs:
       host:
         # eigen does not have a run-export but is header-only
         - eigen
-        - abseil-cpp 20211102.0
+        # - abseil-cpp 20211102.0
         - libprotobuf
         - re2
         - zlib
@@ -75,7 +75,7 @@ outputs:
         # tested in other outputs
         - echo "hello"
 
-      # The python package.
+  # The python package.
   - name: ortools-python
     script: build-python.sh
 
@@ -101,8 +101,9 @@ outputs:
         - scipy >=1.10
         - wheel
         # C/C++ deps
-        - eigen 3.4.0
-        - abseil-cpp 20211102.0
+        # eigen and abseil-cpp are being vendored atm.
+        # - eigen 3.4.0
+        # - abseil-cpp 20211102.0
         - libprotobuf
         - pybind11
         - re2
@@ -110,7 +111,7 @@ outputs:
         # coin or deps
         - coin-or-utils
         - coin-or-osi
-        - coin-or-clp 1.17.7
+        - coin-or-clp
         - coin-or-cgl
         - coin-or-cbc
       run:
@@ -118,11 +119,13 @@ outputs:
         - absl-py >=0.13
         - mypy-protobuf
         - {{ pin_compatible('numpy') }}
-        - protobuf 3.19.4
+        - protobuf
         - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
 
     test:
+      requires:
+        - pip
       imports:
         - ortools
         - ortools.linear_solver.pywraplp
@@ -130,8 +133,6 @@ outputs:
         # - pip check
         - ${PYTHON} cmake/samples/python/sample.py
         - ${PYTHON} ortools/sat/samples/assignment_sat.py
-      requires:
-        - pip
       source_files:
         - cmake/samples/python/sample.py
         - ortools/sat/samples/assignment_sat.py
