@@ -12,8 +12,8 @@ source:
 
 build:
   number: 0
-  skip: true  # [py>310]
-  # skip: true  # [not linux]
+  # coin-or-* rely on openblas not available on Windows
+  skip: true  # [win]
 
 outputs:
   # The core package
