@@ -28,6 +28,7 @@ outputs:
       build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+        - git  # [not win]
         - cmake >=3.18
         - ninja
         - pkg-config
@@ -84,7 +85,7 @@ outputs:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.18
-        - git
+        - git  # [not win]
         - ninja
         - python
         - mypy-protobuf
