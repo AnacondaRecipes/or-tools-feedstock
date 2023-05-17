@@ -21,10 +21,13 @@ cmake -G Ninja \
       -DFETCH_PYTHON_DEPS=OFF \
       -DBUILD_TESTING=OFF \
       -DPython3_EXECUTABLE="$PYTHON" \
-      -DPYTHON_EXECUTABLE="${PYTHON}" \
-      -DCMAKE_PREFIX_PATH="${PREFIX}"
+      -DPython3_ROOT_DIR="${PREFIX}" \
+      -DCMAKE_PREFIX_PATH="${PREFIX}" \
+      -DPython3_FIND_VIRTUALENV=ONLY \
+      -DPython3_FIND_STRATEGY=LOCATION \
+      -DPython3_EXECUTABLE=${PREFIX}/bin/python
 
-cmake --build build -j${CPU_COUNT}
+cmake --build build -j"${CPU_COUNT}"
 
 echo Install begins here
 
