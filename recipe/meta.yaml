@@ -55,6 +55,8 @@ outputs:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
       ignore_run_exports_from:
         - python
+      missing_dso_whitelist:  # [s390x]
+        - '$RPATH/ld64.so.1'  # [s390x]
     requirements:
       build:
         - {{ compiler('c') }}
@@ -96,6 +98,8 @@ outputs:
   # for compatibility with previous output "ortools-cpp"
   - name: ortools-cpp
     build:
+      missing_dso_whitelist:  # [s390x]
+        - '$RPATH/ld64.so.1'  # [s390x]
       run_exports:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
     requirements:
@@ -111,6 +115,9 @@ outputs:
   # The python package.
   - name: ortools-python
     script: build-python.sh
+    build:
+      missing_dso_whitelist:  # [s390x]
+        - '$RPATH/ld64.so.1'  # [s390x]
 
     requirements:
       build:
