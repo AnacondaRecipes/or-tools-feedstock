@@ -16,6 +16,8 @@ build:
   number: 0
   # coin-or-* rely on openblas not available on Windows
   skip: true  # [win]
+  missing_dso_whitelist:  # [s390x]
+    - '$RPATH/ld64.so.1'  # [s390x]
 
 requirements:
   build:
