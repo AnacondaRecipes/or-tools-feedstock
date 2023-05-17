@@ -7,9 +7,10 @@ package:
 source:
   url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
   sha256: 180fbc45f6e5ce5ff153bea2df0df59b15346f2a7f8ffbd7cb4aed0fb484b8f6
+  patches:
+    - 0001_3.11_support.patch
 
 # The meta package
-
 build:
   number: 0
   # coin-or-* rely on openblas not available on Windows
@@ -32,6 +33,7 @@ outputs:
         - cmake >=3.18
         - ninja
         - pkg-config
+        - patch  # [not win]
       host:
         # eigen does not have a run-export but is header-only
         - eigen
@@ -92,6 +94,7 @@ outputs:
         - pkg-config
         - setuptools
         - swig >=4.0
+        - patch  # [not win]
       host:
         - python
         - pip
