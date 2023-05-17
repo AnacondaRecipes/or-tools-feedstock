@@ -164,7 +164,7 @@ outputs:
         - ortools
         - ortools.linear_solver.pywraplp
       commands:
-        # - pip check
+        - pip check
         - ${PYTHON} cmake/samples/python/sample.py
         - ${PYTHON} ortools/sat/samples/assignment_sat.py
         - test -f ${SP_DIR}/ortools/.libs/libortools.9.dylib  # [osx and x86_64]
