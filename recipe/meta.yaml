@@ -16,8 +16,11 @@ build:
   number: 0
   # coin-or-* rely on openblas not available on Windows
   skip: true  # [win]
-  missing_dso_whitelist:  # [s390x]
+  missing_dso_whitelist:  # [s390x or (osx and x86_64)]
     - '$RPATH/ld64.so.1'  # [s390x]
+    # Conda build failing to identify this shared library.
+    # A test has been added instead for osx-64
+    - '*/libortools.9.dylib'  # [osx and x86_64]
 
 requirements:
   build:
@@ -164,6 +167,7 @@ outputs:
         # - pip check
         - ${PYTHON} cmake/samples/python/sample.py
         - ${PYTHON} ortools/sat/samples/assignment_sat.py
+        - test -f ${SP_DIR}/ortools/.libs/libortools.9.dylib  # [osx and x86_64]
       source_files:
         - cmake/samples/python/sample.py
         - ortools/sat/samples/assignment_sat.py
