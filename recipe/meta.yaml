@@ -9,6 +9,7 @@ source:
   sha256: 180fbc45f6e5ce5ff153bea2df0df59b15346f2a7f8ffbd7cb4aed0fb484b8f6
   patches:
     - 0001_3.11_support.patch
+    - 0002_s390x_cast.patch
 
 # The meta package
 build:

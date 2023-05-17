@@ -1,0 +1,12 @@
+index 020e95b5c4..e44200c9aa 100644
+--- a/ortools/constraint_solver/constraint_solveri.h
++++ b/ortools/constraint_solver/constraint_solveri.h
+@@ -241,7 +241,7 @@ inline uint64_t Hash1(int value) { return Hash1(static_cast<uint32_t>(value)); }
+ 
+ inline uint64_t Hash1(void* const ptr) {
+ #if defined(__x86_64__) || defined(_M_X64) || defined(__powerpc64__) || \
+-    defined(__aarch64__)
++    defined(__aarch64__) || defined(__s390x__)
+   return Hash1(reinterpret_cast<uint64_t>(ptr));
+ #else
+   return Hash1(reinterpret_cast<uint32_t>(ptr));
