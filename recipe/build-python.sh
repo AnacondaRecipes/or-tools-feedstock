@@ -25,7 +25,8 @@ cmake -G Ninja \
       -DCMAKE_PREFIX_PATH="${PREFIX}" \
       -DPython3_FIND_VIRTUALENV=ONLY \
       -DPython3_FIND_STRATEGY=LOCATION \
-      -DPython3_EXECUTABLE=${PREFIX}/bin/python
+      -DPython3_EXECUTABLE=${PREFIX}/bin/python \
+      -DPython3_LIBRARY=%PREFIX%\libs\python%PY_VER:~0,1%%PY_VER:~2,2%.lib
 
 cmake --build build -j"${CPU_COUNT}"
 

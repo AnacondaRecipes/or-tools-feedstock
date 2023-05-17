@@ -16,6 +16,30 @@ build:
   # coin-or-* rely on openblas not available on Windows
   skip: true  # [win]
 
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - git  # [not win]
+    - cmake >=3.18
+    - ninja
+    - pkg-config
+    - patch  # [not win]
+  host:
+    # eigen does not have a run-export but is header-only
+    - eigen
+    # - abseil-cpp 20211102.0
+    - libprotobuf
+    - re2
+    - zlib
+    # coin or deps
+    - coin-or-utils
+    - coin-or-osi
+    - coin-or-clp
+    - coin-or-cgl
+    - coin-or-cbc
+    - python
+
 outputs:
   # The core package
   - name: libortools
