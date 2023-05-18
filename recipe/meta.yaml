@@ -16,11 +16,6 @@ build:
   number: 0
   # coin-or-* rely on openblas not available on Windows
   skip: true  # [win]
-  missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-    - '$RPATH/ld64.so.1'  # [s390x]
-    # Conda build failing to identify this shared library.
-    # A test has been added instead for osx-64
-    - '*/libortools.9.dylib'  # [osx and x86_64]
 
 requirements:
   build:
@@ -55,8 +50,11 @@ outputs:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
       ignore_run_exports_from:
         - python
-      missing_dso_whitelist:  # [s390x]
+      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
         - '$RPATH/ld64.so.1'  # [s390x]
+        # Conda build failing to identify this shared library.
+        # A test has been added instead for osx-64
+        - '*/libortools.9.dylib'  # [osx and x86_64]
     requirements:
       build:
         - {{ compiler('c') }}
@@ -98,8 +96,6 @@ outputs:
   # for compatibility with previous output "ortools-cpp"
   - name: ortools-cpp
     build:
-      missing_dso_whitelist:  # [s390x]
-        - '$RPATH/ld64.so.1'  # [s390x]
       run_exports:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
     requirements:
@@ -116,8 +112,11 @@ outputs:
   - name: ortools-python
     script: build-python.sh
     build:
-      missing_dso_whitelist:  # [s390x]
-        - '$RPATH/ld64.so.1'  # [s390x]
+    missing_dso_whitelist:  # [s390x or (osx and x86_64)]
+      - '$RPATH/ld64.so.1'  # [s390x]
+      # Conda build failing to identify this shared library.
+      # A test has been added instead for osx-64
+      - '*/libortools.9.dylib'  # [osx and x86_64]
 
     requirements:
       build:
