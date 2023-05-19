@@ -1,0 +1,12 @@
+diff --git a/ortools/python/setup.py.in b/ortools/python/setup.py.in
+index d104c948ac..5f9d6a3aff 100644
+--- a/ortools/python/setup.py.in
++++ b/ortools/python/setup.py.in
+@@ -99,6 +99,7 @@ setup(
+         'Programming Language :: Python :: 3.8',
+         'Programming Language :: Python :: 3.9',
+         'Programming Language :: Python :: 3.10',
++        'Programming Language :: Python :: 3.11',
+         'Programming Language :: C++',
+         'Programming Language :: Python :: Implementation :: CPython',
+         'Topic :: Office/Business :: Scheduling',
