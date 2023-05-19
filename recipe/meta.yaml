@@ -133,7 +133,6 @@ outputs:
         - python
         - mypy-protobuf
         - pkg-config
-        - setuptools
         - swig >=4.0
         - patch  # [not win]
       host:
@@ -145,6 +144,7 @@ outputs:
         - protobuf
         - scipy >=1.10
         - wheel
+        - setuptools
         # C/C++ deps
         # eigen and abseil-cpp are being vendored atm.
         # - eigen 3.4.0
