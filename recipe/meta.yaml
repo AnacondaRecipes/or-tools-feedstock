@@ -33,6 +33,7 @@ outputs:
         - cmake >=3.18
         - ninja
         - pkg-config
+        - git
       host:
         # eigen does not have a run-export but is header-only
         - eigen
