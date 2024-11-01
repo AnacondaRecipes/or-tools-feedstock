@@ -1,2 +1,2 @@
-#libabseil: '20240116'
-#libprotobuf: '4.25'
+libabseil: '20240116'
+libprotobuf: '4.25'
