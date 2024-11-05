@@ -39,7 +39,7 @@ outputs:
         - eigen
         - libabseil 
 #        - abseil-cpp ==20230802.0
-        - libprotobuf
+        - libprotobuf =={{ libprotobuf }}
         - re2
         - zlib
         # coin or deps
@@ -104,7 +104,7 @@ outputs:
         - wheel
         # C/C++ deps
         - eigen
-        - libabseil
+        - libabseil =={{ libprotobuf }}
 #        - abseil-cpp ==20230802.0
         - libprotobuf
         - pybind11
