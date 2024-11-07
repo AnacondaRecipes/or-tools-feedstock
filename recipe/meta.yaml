@@ -9,7 +9,7 @@ source:
   sha256: bc4b07dc9c23f0cca43b1f5c889f08a59c8f2515836b03d4cc7e0f8f2c879234
   patches:
     # minimal fix for https://github.com/google/or-tools/issues/3698
-#    - patches/0001-ensure-we-re-using-the-right-abseil-macro.patch
+    - patches/0001-fix-abslstringify.patch
 
 # The meta package
 
@@ -34,11 +34,11 @@ outputs:
         - ninja
         - pkg-config
         - git
+        - libabseil >={{ libabseil }}
       host:
         # eigen does not have a run-export but is header-only
         - eigen
-        - libabseil 
-#        - abseil-cpp ==20230802.0
+        - libabseil >={{ libabseil }}
         - libprotobuf =={{ libprotobuf }}
         - re2
         - zlib
@@ -95,6 +95,7 @@ outputs:
         - pkg-config
         - setuptools
         - swig >=4.0
+        - libabseil >={{ libabseil }}
       host:
         - python
         - pip
@@ -104,9 +105,8 @@ outputs:
         - wheel
         # C/C++ deps
         - eigen
-        - libabseil =={{ libprotobuf }}
-#        - abseil-cpp ==20230802.0
-        - libprotobuf
+        - libabseil  >={{ libabseil }}
+        - libprotobuf =={{ libprotobuf }}
         - pybind11
         - re2
         - zlib
