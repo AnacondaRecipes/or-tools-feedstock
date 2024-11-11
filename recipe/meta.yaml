@@ -3,8 +3,8 @@ package:
   version: "your_version_here"  # Specify the desired version
 
 source:
-  url: "https://files.pythonhosted.org/packages/f6/3b/f4e1200886852c09ba4ef8664ae7ff2323ab23326e27515d4b1159230f7e/ortools-9.11.4210-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
-  sha256: "d5a17a37aeaa7d149e2fe8c8dfd5f09630ae28ad734a109ad55536605f8059df"
+  url: "https://files.pythonhosted.org/packages/3c/38/b2e915c4b3f3bf966d2d73e69ee4c72a09452822ea912af0a506a32e2a48/ortools-9.11.4210-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+  sha256: "03ecd32e5d760d48e59832ef6bf724f8cac95e4e40db72a7fb912abf7adcf931"
 
 build:
   number: 0
