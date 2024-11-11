@@ -8,7 +8,16 @@ source:
 
 build:
   number: 0
-    #  script: "{{ PYTHON }} -m pip install --no-deps --ignore-installed ."
+  missing_dso_whitelist:
+    - '*/librt.so.1'
+    - '*/libstdc++.so.6'
+    - '*/libm.so.6'
+    - '*/libgcc_s.so.1'
+    - '*/libc.so.6'
+    - '*/ld-linux-x86-64.so.2'
+    - '*/libc.so.6'
+    - '*/libpthread.so.0'
+    - '*/libdl.so.2'
 
 requirements:
   host:
@@ -16,6 +25,8 @@ requirements:
     - pip
   run:
     - python
+    - libstdcxx-ng
+    - libgcc-ng
    # - numpy  # Add any other dependencies `ortools` requires
 
 about:
