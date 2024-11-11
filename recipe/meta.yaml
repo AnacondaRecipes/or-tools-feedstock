@@ -7,6 +7,7 @@ source:
   sha256: "d5a17a37aeaa7d149e2fe8c8dfd5f09630ae28ad734a109ad55536605f8059df"
 
 build:
+  noarch: python
   number: 0
   missing_dso_whitelist:
     - '*/librt.so.1'
