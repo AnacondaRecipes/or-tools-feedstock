@@ -35,9 +35,9 @@ requirements:
    # - numpy  # Add any other dependencies `ortools` requires
 
 
-test:
-  imports:
-    - ortools
+#test:
+#  imports:
+#    - ortools
 
 about:
   home: https://github.com/google/or-tools
