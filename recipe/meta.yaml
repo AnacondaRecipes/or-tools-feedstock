@@ -27,11 +27,11 @@ requirements:
   host:
     - python
     - pip
-    - libgcc-ng # [not win]
+#    - libgcc-ng # [not win]
   run:
     - python
-    - libstdcxx-ng # [not win]
-    - libgcc-ng # [not win]
+#    - libstdcxx-ng # [not win]
+#    - libgcc-ng # [not win]
    # - numpy  # Add any other dependencies `ortools` requires
 
 
