@@ -11,6 +11,7 @@ cmake -G Ninja \
       -DBUILD_DEPS=OFF \
       -DBUILD_Eigen3=ON \
       -DBUILD_absl=ON \
+      -DBUILD_re2=ON \
       -DUSE_SCIP=OFF \
       -S. \
       -Bbuild \
