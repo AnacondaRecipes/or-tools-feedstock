@@ -11,6 +11,8 @@ cmake -G Ninja \
       -DBUILD_DEPS=OFF \
       -DBUILD_Eigen3=ON \
       -DBUILD_absl=ON \
+      -DBUILD_pybind11_protobuf=ON \
+      -DBUILD_pybind11_abseil=ON \
       -DUSE_SCIP=OFF \
       -S. \
       -Bbuild \
