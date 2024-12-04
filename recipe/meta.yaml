@@ -11,7 +11,6 @@ source:
 
 build:
   skip: True # [linux]
-  - pip
 #  noarch: python
   number: 0
 #  missing_dso_whitelist:
@@ -26,6 +25,8 @@ build:
 #    - '*/libdl.so.2'
 
 requirements:
+  build:
+    - pip
   host:
     - python
     - pip
