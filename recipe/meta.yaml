@@ -11,6 +11,7 @@ source:
 
 build:
   skip: True # [linux]
+  - pip
 #  noarch: python
   number: 0
 #  missing_dso_whitelist:
