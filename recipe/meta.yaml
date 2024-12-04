@@ -69,7 +69,7 @@ outputs:
         # - eigen 3.4.0
         # - abseil-cpp 20211102.0
         - libprotobuf {{ libprotobuf }}
-        - re2
+        #- re2
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -151,7 +151,7 @@ outputs:
         # - abseil-cpp 20211102.0
         - libprotobuf {{ libprotobuf }}
         - pybind11 >=2.11.1
-        - re2
+        #- re2
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
