@@ -31,17 +31,17 @@ requirements:
     - pip
     - libgcc-ng # [not win]
     - protobuf
-    - numpy
+    - numpy >=2.1.1
     - pandas
-    - numpy-base
+    - numpy-base >=2.1.1
   run:
     - python
     - libstdcxx-ng # [not win]
     - libgcc-ng # [not win]
     - protobuf
-    - numpy
+    - numpy >=2.1.1
     - pandas
-    - numpy-base
+    - numpy-base >=2.1.1
 
 
 test:
