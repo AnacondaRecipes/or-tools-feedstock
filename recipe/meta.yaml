@@ -31,12 +31,15 @@ requirements:
     - pip
     - libgcc-ng # [not win]
     - protobuf
+    - numpy
+    - pandas
   run:
     - python
     - libstdcxx-ng # [not win]
     - libgcc-ng # [not win]
     - protobuf
-   # - numpy  # Add any other dependencies `ortools` requires
+    - numpy
+    - pandas
 
 
 test:
