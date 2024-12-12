@@ -33,6 +33,7 @@ requirements:
     - protobuf
     - numpy
     - pandas
+    - numpy-base
   run:
     - python
     - libstdcxx-ng # [not win]
@@ -40,6 +41,7 @@ requirements:
     - protobuf
     - numpy
     - pandas
+    - numpy-base
 
 
 test:
