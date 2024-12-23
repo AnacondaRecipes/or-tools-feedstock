@@ -9,8 +9,8 @@ cmake -G Ninja \
       -DCMAKE_INSTALL_PREFIX=$PREFIX \
       -DBUILD_SHARED_LIBS=ON \
       -DBUILD_DEPS=OFF \
-      -DBUILD_Eigen3=ON \
-      -DBUILD_absl=ON \
+      -DBUILD_Eigen3=OFF \
+      -DBUILD_absl=OFF \
       -DUSE_SCIP=OFF \
       -S. \
       -Bbuild \
@@ -18,6 +18,8 @@ cmake -G Ninja \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_PYTHON=ON \
       -DBUILD_pybind11=OFF \
+      -DBUILD_pybind11_abseil=ON \
+      -DBUILD_pybind11_protobuf=ON \
       -DFETCH_PYTHON_DEPS=OFF \
       -DBUILD_TESTING=OFF \
       -DPython3_EXECUTABLE="$PYTHON" \

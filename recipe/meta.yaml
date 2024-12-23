@@ -1,4 +1,4 @@
-{% set version = "9.4" %}
+{% set version = "9.9" %}
 
 package:
   name: or-tools-package
@@ -6,9 +6,9 @@ package:
 
 source:
   url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
-  sha256: 180fbc45f6e5ce5ff153bea2df0df59b15346f2a7f8ffbd7cb4aed0fb484b8f6
+  sha256: 8c17b1b5b05d925ed03685522172ca87c2912891d57a5e0d5dcaeff8f06a4698
   patches:
-    - patches/0001_3.11_support.patch
+    - patches/0001_3.13_support.patch
     - patches/0002_s390x_cast.patch
 
 # The meta package
@@ -27,11 +27,10 @@ requirements:
     - pkg-config
     - patch  # [not win]
   host:
-    # eigen and abseil-cpp are being vendored atm.
-    # - eigen 3.4.0
-    # - abseil-cpp 20211102.0
+    - eigen 3.4.0
+    - libabseil >=20240116.2
     - libprotobuf {{ libprotobuf }}
-    - re2
+    - re2 >=2024-02-01
     - zlib
     # coin or deps
     - coin-or-utils 2.11.6
@@ -65,11 +64,10 @@ outputs:
         - pkg-config
         - patch  # [not win]
       host:
-        # eigen and abseil-cpp are being vendored atm.
-        # - eigen 3.4.0
-        # - abseil-cpp 20211102.0
+        - eigen 3.4.0
+        - libabseil >=20240116.2
         - libprotobuf {{ libprotobuf }}
-        - re2
+        - re2 >=2024-02-01
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -138,7 +136,7 @@ outputs:
       host:
         - python
         - pip
-        - absl-py 0.15.0
+        - absl-py >=2.0.0
         - numpy
         - mypy-protobuf 3.3.0
         - protobuf
@@ -146,12 +144,11 @@ outputs:
         - wheel
         - setuptools
         # C/C++ deps
-        # eigen and abseil-cpp are being vendored atm.
-        # - eigen 3.4.0
-        # - abseil-cpp 20211102.0
+        - eigen 3.4.0
+        - libabseil >=20240116.2
         - libprotobuf {{ libprotobuf }}
         - pybind11 2.10.1
-        - re2
+        - re2 >=2024-02-01
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -161,12 +158,14 @@ outputs:
         - coin-or-cbc 2.10.7
       run:
         - python
-        - absl-py >=0.13
+        - absl-py >=2.0.0
+        - immutabledict >=3.0.0
         - mypy-protobuf
         - {{ pin_compatible('numpy') }}
-        - protobuf
+        - protobuf {{ libprotobuf }}
         - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
+        - pandas >=2.0.0
 
     test:
       requires:
