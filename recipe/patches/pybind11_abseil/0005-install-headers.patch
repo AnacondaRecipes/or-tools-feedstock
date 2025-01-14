@@ -1,0 +1,30 @@
+From 1870eed5359435ff0c0d8430e3c447e8ecf4be68 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Mon, 13 Jan 2025 15:20:20 +0100
+Subject: [PATCH 5/5] install headers
+
+---
+ pybind11_abseil/CMakeLists.txt | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/pybind11_abseil/CMakeLists.txt b/pybind11_abseil/CMakeLists.txt
+index 936e53a..54b107c 100644
+--- a/pybind11_abseil/CMakeLists.txt
++++ b/pybind11_abseil/CMakeLists.txt
+@@ -236,4 +236,13 @@ if(CMAKE_INSTALL_PYDIR)
+     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil
+   )
+   message(STATUS "Destination for pybind11_abseilConfig.cmake at ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil")
++
++  # Install headers
++  message(STATUS "Install headers from ${CMAKE_CURRENT_SOURCE_DIR}/ to include/pybind11_abseil")
++  install(
++    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
++    DESTINATION include/pybind11_abseil
++    FILES_MATCHING PATTERN "*.h"
++    PATTERN "tests" EXCLUDE
++  )
+ endif()
+-- 
+2.39.1
+

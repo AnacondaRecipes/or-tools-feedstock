@@ -1,0 +1,31 @@
+From 233910ece681656dc21bdc5dbe1f3cb0e1ed9fc3 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Thu, 9 Jan 2025 14:13:08 +0100
+Subject: [PATCH 2/5] use modern findpython module
+
+---
+ CMakeLists.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2db8543..4671e75 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -23,6 +23,14 @@ else()
+   message(FATAL_ERROR "Required Abseil, not found.")
+ endif()
+ 
++# Use modern FindPython module
++set(PYBIND11_FINDPYTHON ON)
++find_package(Python COMPONENTS Interpreter Development REQUIRED)
++message(STATUS "Python executable: ${Python_EXECUTABLE}")
++message(STATUS "Python version: ${Python_VERSION}")
++message(STATUS "Python include dirs: ${Python_INCLUDE_DIRS}")
++message(STATUS "Python libraries: ${Python_LIBRARIES}")
++
+ find_package(pybind11 REQUIRED)
+ if(pybind11_FOUND)
+   message(STATUS "Found pybind11 version ${pybind11_VERSION}")
+-- 
+2.39.1
+

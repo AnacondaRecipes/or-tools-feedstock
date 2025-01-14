@@ -1,0 +1,30 @@
+From abf7a72fc2deab066a58150d298794a383cbfbb2 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Thu, 9 Jan 2025 14:43:17 +0100
+Subject: [PATCH 4/6] use-modern-findpython-module
+
+---
+ CMakeLists.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6215a34..798a1cb 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -46,6 +46,13 @@ else()
+   message(FATAL_ERROR "Required Protobuf, not found.")
+ endif()
+ 
++# Use modern FindPython module
++set(PYBIND11_FINDPYTHON ON)
++find_package(Python COMPONENTS Interpreter Development REQUIRED)
++message(STATUS "Python executable: ${Python_EXECUTABLE}")
++message(STATUS "Python version: ${Python_VERSION}")
++message(STATUS "Python include dirs: ${Python_INCLUDE_DIRS}")
++message(STATUS "Python libraries: ${Python_LIBRARIES}")
+ 
+ set(_pybind11_repository "https://github.com/pybind/pybind11.git")
+ set(_pybind11_version 2.11.1)
+-- 
+2.39.1
+

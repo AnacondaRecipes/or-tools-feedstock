@@ -5,11 +5,31 @@ package:
   version: {{ version }}
 
 source:
-  url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
-  sha256: 8c17b1b5b05d925ed03685522172ca87c2912891d57a5e0d5dcaeff8f06a4698
-  patches:
-    - patches/0001_3.13_support.patch
-    - patches/0002_s390x_cast.patch
+  - url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
+    sha256: 8c17b1b5b05d925ed03685522172ca87c2912891d57a5e0d5dcaeff8f06a4698
+    patches:
+      - patches/0001-3.13_support.patch
+      - patches/0002-add-pybind11_abseil-as-dependency.patch
+      - patches/0003-s390x_cast.patch
+  - url: https://github.com/pybind/pybind11_protobuf/archive/3b11990a99dea5101799e61d98a82c4737d240cc.tar.gz
+    sha256: 8747cbedbc9408b197858fa327b186b0340770721b9848471c040821eb10eae6
+    folder: pybind11_protobuf
+    patches:
+      - patches/pybind11_protobuf/0001-fix-python-headers.patch
+      - patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch
+      - patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch
+      - patches/pybind11_protobuf/0004-use-modern-findpython-module.patch
+      - patches/pybind11_protobuf/0005-install-headers.patch
+      - patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch
+  - url: https://github.com/pybind/pybind11_abseil/archive/52f27398876a3177049977249e004770bd869e61.tar.gz
+    sha256: d977f05b4be67c49f3d2b4795d0daf513f7098a0261b66badb0fa573a1f01391
+    folder: pybind11_abseil
+    patches:
+      - patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch
+      - patches/pybind11_abseil/0002-use-modern-findpython-module.patch
+      - patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch
+      - patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch
+      - patches/pybind11_abseil/0005-install-headers.patch
 
 # The meta package
 build:
@@ -28,7 +48,7 @@ requirements:
     - patch  # [not win]
   host:
     - eigen 3.4.0
-    - libabseil >=20240116.2
+    - libabseil 20240116.2*
     - libprotobuf {{ libprotobuf }}
     - re2 >=2024-02-01
     - zlib
@@ -65,7 +85,7 @@ outputs:
         - patch  # [not win]
       host:
         - eigen 3.4.0
-        - libabseil >=20240116.2
+        - libabseil 20240116.2*
         - libprotobuf {{ libprotobuf }}
         - re2 >=2024-02-01
         - zlib
@@ -130,6 +150,7 @@ outputs:
         - ninja
         - python
         - mypy-protobuf
+        - mypy
         - pkg-config
         - swig >=4.0
         - patch  # [not win]
@@ -139,15 +160,24 @@ outputs:
         - absl-py >=2.0.0
         - numpy
         - mypy-protobuf 3.3.0
+        - mypy
         - protobuf
         - scipy >=1.10
         - wheel
         - setuptools
         # C/C++ deps
         - eigen 3.4.0
-        - libabseil >=20240116.2
+        - libabseil 20240116.2*
         - libprotobuf {{ libprotobuf }}
-        - pybind11 2.10.1
+        - libprotobuf-python-headers {{ libprotobuf }}
+        - pybind11 >=2.11.1
+        # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
+        - pandas >=2.0.0
+        - immutabledict >=3.0.0
+        # - pybind11_protobuf 3b11990
+        - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
+        # - pybind11_abseil 52f2739
+        - {{ pin_subpackage('pybind11_abseil', exact=True) }}
         - re2 >=2024-02-01
         - zlib
         # coin or deps
@@ -166,7 +196,10 @@ outputs:
         - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
         - pandas >=2.0.0
-
+        # - pybind11_protobuf 3b11990
+        - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
+        # - pybind11_abseil 52f2739
+        - {{ pin_subpackage('pybind11_abseil', exact=True) }}
     test:
       requires:
         - pip
@@ -181,6 +214,53 @@ outputs:
       source_files:
         - cmake/samples/python/sample.py
         - ortools/sat/samples/assignment_sat.py
+
+  # The pybind11_protobuf package.
+  - name: pybind11_protobuf
+    version: 3b11990
+    script: build-pybind11_protobuf.sh
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - git  # [not win]
+        - cmake >=3.18
+        - ninja
+        - pkg-config
+        - patch  # [not win]
+        - python
+      host:
+        - python
+        - libabseil 20240116.2*
+        - libprotobuf {{ libprotobuf }}
+        - libprotobuf-python-headers {{ libprotobuf }}
+        - pybind11 >=2.11.1
+      run:
+        - python
+
+  # The pybind11_abseil package.
+  - name: pybind11_abseil
+    version: 52f2739
+    script: build-pybind11_abseil.sh
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - git  # [not win]
+        - cmake >=3.18
+        - ninja
+        - pkg-config
+        - patch  # [not win]
+        - python
+      host:
+        - python
+        - libabseil 20240116.2*
+        - libprotobuf {{ libprotobuf }}
+        - pybind11 >=2.11.1
+      run:
+        - python
+        # - absl-py
+        # - numpy
 
 about:
   home: https://developers.google.com/optimization

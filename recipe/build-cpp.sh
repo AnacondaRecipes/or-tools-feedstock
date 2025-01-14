@@ -1,6 +1,9 @@
 #!/bin/sh
 set -ex
 
+rm -rf build
+mkdir build
+
 cmake -G Ninja \
       ${CMAKE_ARGS} \
       -DCMAKE_BUILD_TYPE=Release \
@@ -11,6 +14,9 @@ cmake -G Ninja \
       -DBUILD_DEPS=OFF \
       -DBUILD_Eigen3=OFF \
       -DBUILD_absl=OFF \
+      -DBUILD_pybind11=OFF \
+      -DBUILD_pybind11_abseil=OFF \
+      -DBUILD_pybind11_protobuf=OFF \
       -DUSE_SCIP=OFF \
       -S. \
       -Bbuild \

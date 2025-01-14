@@ -1,0 +1,53 @@
+From 3758bc66b79cfe294005e5d93949b8d83ee6b382 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Thu, 9 Jan 2025 14:43:00 +0100
+Subject: [PATCH 3/6] use installed abseil, protobuf, pybind11
+
+---
+ CMakeLists.txt | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d11014c..6215a34 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -29,17 +29,33 @@ find_package(Python COMPONENTS Interpreter Development)
+ set(_absl_repository "https://github.com/abseil/abseil-cpp.git")
+ set(_absl_version 20230125)
+ set(_absl_tag 20230125.3)
+-find_package(absl ${_absl_version} QUIET)
++find_package(absl REQUIRED)
++if(absl_FOUND)
++  message(STATUS "Found Abseil version: ${absl_VERSION}")
++else()
++  message(FATAL_ERROR "Required Abseil, not found.")
++endif()
+ 
+ set(_protobuf_repository "https://github.com/protocolbuffers/protobuf.git")
+ set(_protobuf_version 3.23.3)
+ set(_protobuf_tag v23.3)
+-find_package(Protobuf ${_protobuf_version} QUIET)
++find_package(Protobuf REQUIRED)
++if(Protobuf_FOUND)
++  message(STATUS "Found Protobuf version: ${Protobuf_VERSION}")
++else()
++  message(FATAL_ERROR "Required Protobuf, not found.")
++endif()
++
+ 
+ set(_pybind11_repository "https://github.com/pybind/pybind11.git")
+ set(_pybind11_version 2.11.1)
+ set(_pybind11_tag v2.11.1)
+-find_package(pybind11 ${_pybind11_version} QUIET)
++find_package(pybind11 REQUIRED)
++if(pybind11_FOUND)
++  message(STATUS "Found pybind11 version: ${pybind11_VERSION}")
++else()
++  message(FATAL_ERROR "Required pybind11, not found.")
++endif()
+ 
+ add_subdirectory(cmake/dependencies dependencies)
+ 
+-- 
+2.39.1
+
