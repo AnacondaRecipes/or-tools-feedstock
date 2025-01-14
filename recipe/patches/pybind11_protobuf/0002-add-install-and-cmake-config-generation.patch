@@ -1,0 +1,64 @@
+From 541db7480592e4e5d7ae603ba79bdbbdb6d2ebac Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Wed, 8 Jan 2025 17:07:56 +0100
+Subject: [PATCH 2/6] add install and cmake config generation
+
+---
+ CMakeLists.txt                   | 33 ++++++++++++++++++++++++++++++++
+ pybind11_protobufConfig.cmake.in |  3 +++
+ 2 files changed, 36 insertions(+)
+ create mode 100644 pybind11_protobufConfig.cmake.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 46388d1..d11014c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -139,3 +139,36 @@ target_include_directories(
+ #
+ # proto_cast_util
+ #
++
++include(CMakePackageConfigHelpers)
++
++# Install the pybind11_proto_utils module
++install(TARGETS pybind11_proto_utils
++        EXPORT pybind11_protobufTargets
++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++
++# Install the shared libraries
++install(TARGETS pybind11_native_proto_caster pybind11_wrapped_proto_caster
++        EXPORT pybind11_protobufTargets
++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++
++# Export the targets for CMake
++install(EXPORT pybind11_protobufTargets
++        FILE pybind11_protobufTargets.cmake
++        NAMESPACE pybind11_protobuf::
++        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf)
++
++# Generate the Config file
++configure_package_config_file(
++    "${CMAKE_CURRENT_SOURCE_DIR}/pybind11_protobufConfig.cmake.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/pybind11_protobufConfig.cmake"
++    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf
++)
++
++# Install the Config file
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pybind11_protobufConfig.cmake"
++        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf)
+diff --git a/pybind11_protobufConfig.cmake.in b/pybind11_protobufConfig.cmake.in
+new file mode 100644
+index 0000000..f594119
+--- /dev/null
++++ b/pybind11_protobufConfig.cmake.in
+@@ -0,0 +1,3 @@
++@PACKAGE_INIT@
++
++include("${CMAKE_CURRENT_LIST_DIR}/pybind11_protobufTargets.cmake")
+-- 
+2.39.1
+

@@ -1,0 +1,34 @@
+From 6556162f8dab57b3b7ece4ccd3cdd487f90c7757 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Mon, 13 Jan 2025 17:43:06 +0100
+Subject: [PATCH 6/6] apply-or-tools-team-patch
+
+---
+ CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8632645..c0d10c1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -83,7 +83,7 @@ target_include_directories(
+ # ============================================================================
+ # pybind11_native_proto_caster shared library
+ add_library(
+-  pybind11_native_proto_caster SHARED
++  pybind11_native_proto_caster STATIC
+   # bazel: pybind_library: native_proto_caster
+   pybind11_protobuf/native_proto_caster.h
+   # bazel: pybind_library: enum_type_caster
+@@ -109,6 +109,8 @@ target_link_libraries(
+ 
+ target_include_directories(
+   pybind11_native_proto_caster
++  PUBLIC
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+   PRIVATE ${PROJECT_SOURCE_DIR} ${protobuf_INCLUDE_DIRS} ${protobuf_SOURCE_DIR}
+           ${pybind11_INCLUDE_DIRS})
+ 
+-- 
+2.39.1
+

@@ -1,0 +1,46 @@
+From f143acc40e4a51155fdf8072da3f4febacab5c3b Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Fri, 10 Jan 2025 16:52:42 +0100
+Subject: [PATCH 2/2] add pybind11_abseil as dependency
+
+---
+ cmake/deps.cmake | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/cmake/deps.cmake b/cmake/deps.cmake
+index 9b65581..82e5188 100644
+--- a/cmake/deps.cmake
++++ b/cmake/deps.cmake
+@@ -167,5 +167,29 @@ if(BUILD_PYTHON)
+ 
+   if(NOT BUILD_pybind11_protobuf)
+     find_package(pybind11_protobuf REQUIRED)
++    if(pybind11_protobuf_FOUND)
++      message(STATUS "Found pybind11_protobuf version: ${pybind11_protobuf_VERSION}")
++    else()
++      message(FATAL_ERROR "Required pybind11_protobuf, not found.")
++    endif()
+   endif()
++  if(NOT BUILD_pybind11_abseil)
++    find_package(pybind11_abseil REQUIRED)
++    if(pybind11_abseil_FOUND)
++      message(STATUS "Found pybind11_abseil version: ${pybind11_abseil_VERSION}")
++    else()
++      message(FATAL_ERROR "Required pybind11_abseil, not found.")
++    endif()
++    if(TARGET absl_casters)
++      message(STATUS "Target absl_casters is available.")
++    else()
++      message(FATAL_ERROR "Target absl_casters is NOT available.")
++    endif()
++    if(TARGET pybind11_abseil::absl_casters)
++      message(STATUS "Target pybind11_abseil::absl_casters is available.")
++    else()
++      message(FATAL_ERROR "Target pybind11_abseil::absl_casters is NOT available.")
++    endif()
++  endif()
++
+ endif()
+-- 
+2.39.1
+

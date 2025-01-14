@@ -1,6 +1,9 @@
 #!/bin/sh
 set -ex
 
+rm -rf build
+mkdir build
+
 cmake -G Ninja \
       ${CMAKE_ARGS} \
       -DCMAKE_BUILD_TYPE=Release \
@@ -18,8 +21,8 @@ cmake -G Ninja \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_PYTHON=ON \
       -DBUILD_pybind11=OFF \
-      -DBUILD_pybind11_abseil=ON \
-      -DBUILD_pybind11_protobuf=ON \
+      -DBUILD_pybind11_abseil=OFF \
+      -DBUILD_pybind11_protobuf=OFF \
       -DFETCH_PYTHON_DEPS=OFF \
       -DBUILD_TESTING=OFF \
       -DPython3_EXECUTABLE="$PYTHON" \
@@ -34,4 +37,4 @@ cmake --build build -j"${CPU_COUNT}"
 
 echo Install begins here
 
-${PYTHON} -m pip install --no-index --find-links=build/python/dist ortools -vv
+${PYTHON} -m pip install --no-index --find-links=build/python/dist ortools --ignore-installed --no-deps --no-build-isolation -vv

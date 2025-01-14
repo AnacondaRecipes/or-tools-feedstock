@@ -1,0 +1,150 @@
+From 18f5d12db9a921942e899f9a615dd973bef7e5db Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Thu, 9 Jan 2025 17:03:33 +0100
+Subject: [PATCH 3/5] apply or tools team patch
+
+---
+ pybind11_abseil/CMakeLists.txt       | 44 +++++++++++++++++++---------
+ pybind11_abseil/tests/CMakeLists.txt |  8 ++---
+ 2 files changed, 34 insertions(+), 18 deletions(-)
+
+diff --git a/pybind11_abseil/CMakeLists.txt b/pybind11_abseil/CMakeLists.txt
+index d1b7483..ce7fd72 100644
+--- a/pybind11_abseil/CMakeLists.txt
++++ b/pybind11_abseil/CMakeLists.txt
+@@ -42,14 +42,19 @@ target_link_libraries(ok_status_singleton_pyinit_google3
+ 
+ # ok_status_singleton =======================================================
+ 
+-add_library(ok_status_singleton SHARED ok_status_singleton_py_extension_stub.cc)
++pybind11_add_module(ok_status_singleton MODULE ok_status_singleton_py_extension_stub.cc)
+ add_library(pybind11_abseil::ok_status_singleton ALIAS ok_status_singleton)
+ 
++# note: macOS is APPLE and also UNIX !
++if(APPLE)
++  set_target_properties(ok_status_singleton PROPERTIES SUFFIX ".so")
++  set_property(TARGET ok_status_singleton APPEND PROPERTY
++    LINK_FLAGS "-flat_namespace -undefined suppress")
++endif()
++
+ target_include_directories(ok_status_singleton
+                            INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
+ 
+-set_target_properties(ok_status_singleton PROPERTIES PREFIX "")
+-
+ target_link_libraries(ok_status_singleton
+                       PUBLIC ok_status_singleton_pyinit_google3)
+ 
+@@ -150,14 +155,23 @@ target_link_libraries(status_pyinit_google3 PUBLIC register_status_bindings)
+ 
+ # status ====================================================================
+ 
+-add_library(status SHARED status_py_extension_stub.cc)
+-add_library(pybind11_abseil::status ALIAS status)
++pybind11_add_module(status_py_extension_stub MODULE status_py_extension_stub.cc)
++
++set_target_properties(status_py_extension_stub PROPERTIES LIBRARY_OUTPUT_NAME "status")
++# note: macOS is APPLE and also UNIX !
++if(APPLE)
++  set_target_properties(status_py_extension_stub PROPERTIES SUFFIX ".so")
++  set_property(TARGET status_py_extension_stub APPEND PROPERTY
++    LINK_FLAGS "-flat_namespace -undefined suppress")
++endif()
++
++add_library(pybind11_abseil::status ALIAS status_py_extension_stub)
+ 
+-target_include_directories(status INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
++target_include_directories(status_py_extension_stub INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
+ 
+-set_target_properties(status PROPERTIES PREFIX "")
++set_target_properties(status_py_extension_stub PROPERTIES PREFIX "")
+ 
+-target_link_libraries(status PUBLIC status_pyinit_google3 absl::status)
++target_link_libraries(status_py_extension_stub PUBLIC status_pyinit_google3 absl::status)
+ 
+ # import_status_module =========================================================
+ 
+@@ -167,7 +181,7 @@ add_library(pybind11_abseil::import_status_module ALIAS import_status_module)
+ target_include_directories(import_status_module
+                            INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
+ 
+-target_link_libraries(import_status_module PUBLIC status)
++add_dependencies(import_status_module status_py_extension_stub)
+ 
+ # status_casters ===============================================================
+ 
+@@ -175,25 +189,27 @@ add_library(status_casters INTERFACE)
+ add_library(pybind11_abseil::status_casters ALIAS status_casters)
+ 
+ target_include_directories(status_casters
+-                           INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
++  INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
+ 
+ target_link_libraries(status_casters INTERFACE import_status_module
+-                                               status_caster statusor_caster)
++  status_caster statusor_caster)
+ 
+-add_subdirectory(tests)
++if(BUILD_TESTING)
++  add_subdirectory(tests)
++endif()
+ 
+ if(CMAKE_INSTALL_PYDIR)
+   # Copying to two target directories for simplicity. It is currently unknown
+   # how to determine here which copy is actually being used.
+   install(
+-    TARGETS status ok_status_singleton
++    TARGETS status_py_extension_stub ok_status_singleton
+     EXPORT pybind11_abseilTargets
+     LIBRARY DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
+     ARCHIVE DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
+     RUNTIME DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil)
+ 
+   install(
+-    TARGETS status ok_status_singleton
++    TARGETS status_py_extension_stub ok_status_singleton
+     EXPORT pybind11_abseil_cppTargets
+     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+diff --git a/pybind11_abseil/tests/CMakeLists.txt b/pybind11_abseil/tests/CMakeLists.txt
+index a423c30..ae22a48 100644
+--- a/pybind11_abseil/tests/CMakeLists.txt
++++ b/pybind11_abseil/tests/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ # cpp_capsule_tools_testing ====================================================
+ 
+-pybind11_add_module(cpp_capsule_tools_testing SHARED
++pybind11_add_module(cpp_capsule_tools_testing MODULE
+                     cpp_capsule_tools_testing.cc)
+ 
+ target_link_libraries(
+@@ -26,7 +26,7 @@ add_test(
+ 
+ # absl_example =================================================================
+ 
+-pybind11_add_module(absl_example SHARED absl_example.cc)
++pybind11_add_module(absl_example MODULE absl_example.cc)
+ 
+ target_link_libraries(
+   absl_example
+@@ -57,7 +57,7 @@ add_test(
+ 
+ # missing_import ===============================================================
+ 
+-pybind11_add_module(missing_import SHARED missing_import.cc)
++pybind11_add_module(missing_import MODULE missing_import.cc)
+ 
+ target_compile_options(missing_import PUBLIC -UNDEBUG)
+ 
+@@ -83,7 +83,7 @@ add_test(
+ 
+ # status_example ===============================================================
+ 
+-pybind11_add_module(status_example SHARED status_example.cc)
++pybind11_add_module(status_example MODULE status_example.cc)
+ 
+ target_link_libraries(status_example PRIVATE status_casters absl::status
+                                              absl::statusor)
+-- 
+2.39.1
+
