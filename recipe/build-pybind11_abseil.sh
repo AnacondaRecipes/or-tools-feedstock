@@ -2,6 +2,7 @@
 set -ex
 
 cd pybind11_abseil
+
 rm -rf build
 mkdir build
 
@@ -20,5 +21,5 @@ cmake -G Ninja \
       -DBUILD_TESTING=OFF \
       -S . -B build
 
-echo "Building project..."
+echo "Building and installing project..."
 cmake --build build --target install --verbose -j${CPU_COUNT}

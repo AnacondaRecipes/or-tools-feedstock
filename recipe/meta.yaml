@@ -1,4 +1,6 @@
 {% set version = "9.9" %}
+{% set pybind11_abseil_commit_id = "52f2739" %}
+{% set pybind11_protobuf_commit_id = "3b11990" %}
 
 package:
   name: or-tools-package
@@ -11,7 +13,7 @@ source:
       - patches/0001-3.13_support.patch
       - patches/0002-add-pybind11_abseil-as-dependency.patch
       - patches/0003-s390x_cast.patch
-  - url: https://github.com/pybind/pybind11_protobuf/archive/3b11990a99dea5101799e61d98a82c4737d240cc.tar.gz
+  - url: https://github.com/pybind/pybind11_protobuf/archive/{{ pybind11_protobuf_commit_id }}.tar.gz
     sha256: 8747cbedbc9408b197858fa327b186b0340770721b9848471c040821eb10eae6
     folder: pybind11_protobuf
     patches:
@@ -21,7 +23,7 @@ source:
       - patches/pybind11_protobuf/0004-use-modern-findpython-module.patch
       - patches/pybind11_protobuf/0005-install-headers.patch
       - patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch
-  - url: https://github.com/pybind/pybind11_abseil/archive/52f27398876a3177049977249e004770bd869e61.tar.gz
+  - url: https://github.com/pybind/pybind11_abseil/archive/{{ pybind11_abseil_commit_id }}.tar.gz
     sha256: d977f05b4be67c49f3d2b4795d0daf513f7098a0261b66badb0fa573a1f01391
     folder: pybind11_abseil
     patches:
@@ -215,22 +217,23 @@ outputs:
         - cmake/samples/python/sample.py
         - ortools/sat/samples/assignment_sat.py
 
-  # The pybind11_protobuf package.
+  # The pybind11_protobuf package, used by ortools-python.
   - name: pybind11_protobuf
-    version: 3b11990
+    # The version is a placeholder, to avoid setting its version
+    # like the rest of the recipe (e.g. 9.9). The commit id is
+    # used (see above).
+    version: {{ pybind11_protobuf_commit_id }}
     script: build-pybind11_protobuf.sh
     requirements:
       build:
-        - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - git  # [not win]
         - cmake >=3.18
         - ninja
-        - pkg-config
-        - patch  # [not win]
         - python
       host:
         - python
+        # These must align with ortools-python,
+        # rather than upstream
         - libabseil 20240116.2*
         - libprotobuf {{ libprotobuf }}
         - libprotobuf-python-headers {{ libprotobuf }}
@@ -238,29 +241,30 @@ outputs:
       run:
         - python
 
-  # The pybind11_abseil package.
+  # The pybind11_abseil package, used by ortools-python
   - name: pybind11_abseil
-    version: 52f2739
+    # The version is a placeholder, to avoid setting its version
+    # like the rest of the recipe (e.g. 9.9). The commit id is
+    # used (see above).
+    version: {{ pybind11_abseil_commit_id }}
     script: build-pybind11_abseil.sh
     requirements:
       build:
-        - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - git  # [not win]
         - cmake >=3.18
         - ninja
-        - pkg-config
-        - patch  # [not win]
         - python
       host:
         - python
+        # These must align with ortools-python,
+        # rather than upstream
         - libabseil 20240116.2*
         - libprotobuf {{ libprotobuf }}
         - pybind11 >=2.11.1
       run:
         - python
-        # - absl-py
-        # - numpy
+        - absl-py
+        - numpy >=1.13.3
 
 about:
   home: https://developers.google.com/optimization

@@ -2,6 +2,7 @@
 set -ex
 
 cd pybind11_protobuf
+
 rm -rf build
 mkdir build
 
