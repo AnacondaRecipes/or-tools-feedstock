@@ -41,25 +41,8 @@ build:
 
 requirements:
   build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - git  # [not win]
-    - cmake >=3.18
-    - ninja
-    - pkg-config
     - patch  # [not win]
   host:
-    - eigen 3.4.0
-    - libabseil 20240116.2*
-    - libprotobuf {{ libprotobuf }}
-    - re2 >=2024-02-01
-    - zlib
-    # coin or deps
-    - coin-or-utils 2.11.6
-    - coin-or-osi 0.108.7
-    - coin-or-clp 1.17.7
-    - coin-or-cgl 0.60.5
-    - coin-or-cbc 2.10.7
     - python
 
 outputs:
@@ -78,9 +61,7 @@ outputs:
         - '*/libortools.9.dylib'  # [osx and x86_64]
     requirements:
       build:
-        - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - git  # [not win]
         - cmake >=3.18
         - ninja
         - pkg-config
@@ -128,10 +109,6 @@ outputs:
         - {{ pin_subpackage('libortools', exact=True) }}
       run:
         - {{ pin_subpackage('libortools', exact=True) }}
-    test:
-      commands:
-        # tested in other outputs
-        - echo "hello"
 
   # The python package.
   - name: ortools-python
@@ -145,37 +122,28 @@ outputs:
 
     requirements:
       build:
-        - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.18
-        - git  # [not win]
         - ninja
-        - python
         - mypy-protobuf
         - mypy
         - pkg-config
         - swig >=4.0
         - patch  # [not win]
+        - python
       host:
         - python
         - pip
-        - absl-py >=2.0.0
-        - numpy
-        - mypy-protobuf 3.3.0
-        - mypy
-        - protobuf
-        - scipy >=1.10
         - wheel
         - setuptools
+        - mypy-protobuf 3.3.0
+        - mypy
         # C/C++ deps
         - eigen 3.4.0
         - libabseil 20240116.2*
         - libprotobuf {{ libprotobuf }}
         - libprotobuf-python-headers {{ libprotobuf }}
         - pybind11 >=2.11.1
-        # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
-        - pandas >=2.0.0
-        - immutabledict >=3.0.0
         # - pybind11_protobuf 3b11990
         - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
         # - pybind11_abseil 52f2739
@@ -188,16 +156,22 @@ outputs:
         - coin-or-clp 1.17.7
         - coin-or-cgl 0.60.5
         - coin-or-cbc 2.10.7
+        # Source:
+        # https://github.com/google/or-tools/blob/v9.9/ortools/python/setup.py.in#L44
+        - absl-py >=2.0.0
+        - numpy >=1.13.3
+        - pandas >=2.0.0
+        - protobuf {{ libprotobuf }}
+        - immutabledict >=3.0.0
       run:
         - python
-        - absl-py >=2.0.0
-        - immutabledict >=3.0.0
         - mypy-protobuf
-        - {{ pin_compatible('numpy') }}
-        - protobuf {{ libprotobuf }}
-        - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
+        - absl-py >=2.0.0
+        - {{ pin_compatible('numpy') }}
         - pandas >=2.0.0
+        - protobuf {{ libprotobuf }}
+        - immutabledict >=3.0.0
         # - pybind11_protobuf 3b11990
         - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
         # - pybind11_abseil 52f2739
@@ -205,6 +179,7 @@ outputs:
     test:
       requires:
         - pip
+        - scipy >=1.10
       imports:
         - ortools
         - ortools.linear_solver.pywraplp
