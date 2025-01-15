@@ -125,7 +125,7 @@ outputs:
         - {{ compiler('cxx') }}
         - cmake >=3.18
         - ninja
-        - mypy-protobuf
+        - mypy-protobuf 3.6.0
         - mypy
         - pkg-config
         - swig >=4.0
@@ -136,7 +136,7 @@ outputs:
         - pip
         - wheel
         - setuptools
-        - mypy-protobuf 3.3.0
+        - mypy-protobuf 3.6.0
         - mypy
         # C/C++ deps
         - eigen 3.4.0
@@ -165,7 +165,7 @@ outputs:
         - immutabledict >=3.0.0
       run:
         - python
-        - mypy-protobuf
+        - mypy-protobuf 3.6.0
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
         - absl-py >=2.0.0
         - {{ pin_compatible('numpy') }}
