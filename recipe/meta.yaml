@@ -1,4 +1,12 @@
 {% set version = "9.9" %}
+# pinnings
+{% set cmake = ">=3.18" %}
+{% set libabseil = "20240116.2*" %}
+{% set re2 = "2024-02-01" %}
+{% set mypy_protobuf = "3.6.0" %}
+{% set mypy = "1.14.1" %}
+{% set eigen = "3.4.0" %}
+{% set pybind11 = "2.13.6" %}
 {% set pybind11_abseil_commit_id = "52f2739" %}
 {% set pybind11_protobuf_commit_id = "3b11990" %}
 
@@ -62,15 +70,15 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.18
+        - cmake {{ cmake }}
         - ninja
         - pkg-config
         - patch  # [not win]
       host:
-        - eigen 3.4.0
-        - libabseil 20240116.2*
+        - eigen {{ eigen }}
+        - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
-        - re2 >=2024-02-01
+        - re2 {{ re2 }}
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -85,7 +93,6 @@ outputs:
       run_constrained:
         # make sure we don't co-install with old version of previous package name
         - ortools-cpp ={{ version }}
-
     test:
       commands:
         - test -f $PREFIX/lib/libortools${SHLIB_EXT}
@@ -123,10 +130,10 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.18
+        - cmake {{ cmake }}
         - ninja
-        - mypy-protobuf 3.6.0
-        - mypy
+        - mypy-protobuf {{ mypy_protobuf }}
+        - mypy {{ mypy }}
         - pkg-config
         - swig >=4.0
         - patch  # [not win]
@@ -136,19 +143,19 @@ outputs:
         - pip
         - wheel
         - setuptools
-        - mypy-protobuf 3.6.0
-        - mypy
+        - mypy-protobuf {{ mypy_protobuf }}
+        - mypy {{ mypy }}
         # C/C++ deps
-        - eigen 3.4.0
-        - libabseil 20240116.2*
+        - eigen {{ eigen }}
+        - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
         - libprotobuf-python-headers {{ libprotobuf }}
-        - pybind11 >=2.11.1
+        - pybind11 {{ pybind11 }}
         # - pybind11_protobuf 3b11990
         - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
         # - pybind11_abseil 52f2739
         - {{ pin_subpackage('pybind11_abseil', exact=True) }}
-        - re2 >=2024-02-01
+        - re2 {{ re2 }}
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -158,14 +165,14 @@ outputs:
         - coin-or-cbc 2.10.7
         # Source:
         # https://github.com/google/or-tools/blob/v9.9/ortools/python/setup.py.in#L44
-        - absl-py >=2.0.0
-        - numpy >=1.13.3
-        - pandas >=2.0.0
+        - absl-py 2.1.0
+        - numpy 2.0.1
+        - pandas 2.2.3
         - protobuf {{ libprotobuf }}
-        - immutabledict >=3.0.0
+        - immutabledict 4.2.0
       run:
         - python
-        - mypy-protobuf 3.6.0
+        - mypy-protobuf {{ mypy_protobuf }}
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
         - absl-py >=2.0.0
         - {{ pin_compatible('numpy') }}
@@ -202,17 +209,17 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.18
+        - cmake {{ cmake }}
         - ninja
         - python
       host:
         - python
         # These must align with ortools-python,
         # rather than upstream
-        - libabseil 20240116.2*
+        - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
         - libprotobuf-python-headers {{ libprotobuf }}
-        - pybind11 >=2.11.1
+        - pybind11 {{ pybind11 }}
       run:
         - python
 
@@ -226,16 +233,16 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.18
+        - cmake {{ cmake }}
         - ninja
         - python
       host:
         - python
         # These must align with ortools-python,
         # rather than upstream
-        - libabseil 20240116.2*
+        - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
-        - pybind11 >=2.11.1
+        - pybind11 {{ pybind11 }}
       run:
         - python
         - absl-py
@@ -257,6 +264,7 @@ about:
     Gurobi or CPLEX, or open-source solvers such as SCIP, GLPK, or Google's GLOP
     and award-winning CP-SAT.
   dev_url: https://github.com/google/or-tools
+  doc_url: https://developers.google.com/optimization
 
 extra:
   recipe-maintainers:
