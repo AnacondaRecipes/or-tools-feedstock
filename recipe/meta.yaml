@@ -273,9 +273,9 @@ outputs:
         # shared libraries
         - test -f $SP_DIR/pybind11_abseil/status.*${SHLIB_EXT}
         - test -f $SP_DIR/pybind11_abseil/ok_status_singleton.*${SHLIB_EXT}
-        - test -f $PREFIX/lib/libabsl_status.so
-        - test -f $PREFIX/lib/libabsl_base.so
-        - test -f $PREFIX/lib/libabsl_log_entry.so
+        - test -f $PREFIX/lib/libabsl_status.${SHLIB_EXT}
+        - test -f $PREFIX/lib/libabsl_base.${SHLIB_EXT}
+        - test -f $PREFIX/lib/libabsl_log_entry.${SHLIB_EXT}
         # config and targets
         - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilTargets.cmake
         - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilConfig.cmake
