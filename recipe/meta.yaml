@@ -116,6 +116,11 @@ outputs:
         - {{ pin_subpackage('libortools', exact=True) }}
       run:
         - {{ pin_subpackage('libortools', exact=True) }}
+    test:
+      commands:
+        # just make sure that everything worked,
+        # the rest are already tested in libortools
+        - test -f $PREFIX/lib/libortools${SHLIB_EXT}
 
   # The python package.
   - name: ortools-python
@@ -126,7 +131,6 @@ outputs:
         # Conda build failing to identify this shared library.
         # A test has been added instead for osx-64
         - '*/libortools.9.dylib'  # [osx and x86_64]
-
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -222,6 +226,20 @@ outputs:
         - pybind11 {{ pybind11 }}
       run:
         - python
+    test:
+      commands:
+        # static libraries
+        - test -f $PREFIX/lib/libpybind11_native_proto_caster.a
+        # shared libraries
+        - test -f $PREFIX/lib/pybind11_proto_utils*${SHLIB_EXT}
+        - test -f $PREFIX/lib/libpybind11_wrapped_proto_caster${SHLIB_EXT}
+        # config and targets
+        - test -f $PREFIX/lib/cmake/pybind11_protobuf/pybind11_protobufTargets.cmake
+        - test -f $PREFIX/lib/cmake/pybind11_protobuf/pybind11_protobufConfig.cmake
+        # key headers
+        - test -f $PREFIX/include/pybind11_protobuf/check_unknown_fields.h
+        - test -f $PREFIX/include/pybind11_protobuf/wrapped_proto_caster.h
+        - test -f $PREFIX/include/pybind11_protobuf/native_proto_caster.h
 
   # The pybind11_abseil package, used by ortools-python
   - name: pybind11_abseil
@@ -247,6 +265,23 @@ outputs:
         - python
         - absl-py
         - numpy >=1.13.3
+    test:
+      imports:
+        - pybind11_abseil.status
+        - pybind11_abseil.ok_status_singleton
+      commands:
+        # shared libraries
+        - test -f $SP_DIR/pybind11_abseil/status.*${SHLIB_EXT}
+        - test -f $SP_DIR/pybind11_abseil/ok_status_singleton.*${SHLIB_EXT}
+        - test -f $PREFIX/lib/libabsl_status.so
+        - test -f $PREFIX/lib/libabsl_base.so
+        - test -f $PREFIX/lib/libabsl_log_entry.so
+        # config and targets
+        - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilTargets.cmake
+        - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilConfig.cmake
+        # key headers
+        - test -f $PREFIX/include/pybind11_abseil/status_caster.h
+        - test -f $PREFIX/include/pybind11_abseil/absl_casters.h
 
 about:
   home: https://developers.google.com/optimization
