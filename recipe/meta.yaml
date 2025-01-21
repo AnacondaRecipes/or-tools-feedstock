@@ -227,13 +227,21 @@ outputs:
       run:
         - python
     test:
+        # pybind_protobuf is not exported as a Python module, therefore we cannot
+        # import it. See other comment about pybind11_proto_utils in the tests commands
       commands:
         # static libraries
         - test -f $PREFIX/lib/libpybind11_native_proto_caster.a
         # Shared libraries
-        # For Python extension modules: Always expect .so files, even on macOS.
-        - test -f $PREFIX/lib/pybind11_proto_utils*.so
         - test -f $PREFIX/lib/libpybind11_wrapped_proto_caster${SHLIB_EXT}
+        # For Python extension modules: Always expect .so files, even on macOS.
+        #
+        # pybind11_proto_utils is not a standalone Python module. Instead, it is
+        # a supporting library that should be linked with other pybind11-based
+        # extensions (see pybind11_protobuf readme).
+        # This tests that it is installed in a directory where other modules can
+        # find and link against it during compilation.
+        - test -f $PREFIX/lib/pybind11_proto_utils*.so
         # config and targets
         - test -f $PREFIX/lib/cmake/pybind11_protobuf/pybind11_protobufTargets.cmake
         - test -f $PREFIX/lib/cmake/pybind11_protobuf/pybind11_protobufConfig.cmake
