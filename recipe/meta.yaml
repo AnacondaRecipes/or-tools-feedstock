@@ -269,17 +269,22 @@ outputs:
       imports:
         - pybind11_abseil.status
         - pybind11_abseil.ok_status_singleton
+      requires:
+        - pip
       commands:
-        # shared libraries
-        - test -f $SP_DIR/pybind11_abseil/status.*${SHLIB_EXT}
-        - test -f $SP_DIR/pybind11_abseil/ok_status_singleton.*${SHLIB_EXT}
-        - test -f $PREFIX/lib/libabsl_status.${SHLIB_EXT}
-        - test -f $PREFIX/lib/libabsl_base.${SHLIB_EXT}
-        - test -f $PREFIX/lib/libabsl_log_entry.${SHLIB_EXT}
-        # config and targets
+        - pip check
+        # Shared libraries
+        # For Python extension modules: Always expect .so files, even on macOS.
+        - test -f $SP_DIR/pybind11_abseil/status*.so
+        - test -f $SP_DIR/pybind11_abseil/ok_status_singleton*.so
+        # For osx intermediate shared libraries are not installed
+        - test -f $PREFIX/lib/libabsl_status${SHLIB_EXT}  # [linux]
+        - test -f $PREFIX/lib/libabsl_base${SHLIB_EXT}  # [linux]
+        - test -f $PREFIX/lib/libabsl_log_entry${SHLIB_EXT}  # [linux]
+        # Config and targets
         - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilTargets.cmake
         - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilConfig.cmake
-        # key headers
+        # Key headers
         - test -f $PREFIX/include/pybind11_abseil/status_caster.h
         - test -f $PREFIX/include/pybind11_abseil/absl_casters.h
 
