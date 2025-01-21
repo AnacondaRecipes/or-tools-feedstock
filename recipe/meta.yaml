@@ -276,6 +276,7 @@ outputs:
         - numpy >=1.13.3
     test:
       imports:
+        - pybind11_abseil
         - pybind11_abseil.status
         - pybind11_abseil.ok_status_singleton
       requires:
