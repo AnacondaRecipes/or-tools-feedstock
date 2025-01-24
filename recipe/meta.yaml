@@ -7,8 +7,6 @@
 {% set mypy = "1.14.1" %}
 {% set eigen = "3.4.0" %}
 {% set pybind11 = "2.13.6" %}
-{% set pybind11_abseil_commit_id = "52f2739" %}
-{% set pybind11_protobuf_commit_id = "3b11990" %}
 
 package:
   name: or-tools-package
@@ -33,7 +31,8 @@ build:
 requirements:
   build:
     - patch  # [not win]
-    - git  # [not win]
+    # git used for vendored pybind11_protobuf and pybind11_abseil
+    - git    # [not win]
   host:
     - python
 
