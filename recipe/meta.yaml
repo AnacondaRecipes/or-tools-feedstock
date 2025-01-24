@@ -18,28 +18,11 @@ source:
   - url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
     sha256: 8c17b1b5b05d925ed03685522172ca87c2912891d57a5e0d5dcaeff8f06a4698
     patches:
+      - patches/0000-s390x_cast.patch
       - patches/0001-3.13_support.patch
       - patches/0002-add-pybind11_abseil-as-dependency.patch
-      - patches/0003-s390x_cast.patch
-  - url: https://github.com/pybind/pybind11_protobuf/archive/{{ pybind11_protobuf_commit_id }}.tar.gz
-    sha256: 8747cbedbc9408b197858fa327b186b0340770721b9848471c040821eb10eae6
-    folder: pybind11_protobuf
-    patches:
-      - patches/pybind11_protobuf/0001-fix-python-headers.patch
-      - patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch
-      - patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch
-      - patches/pybind11_protobuf/0004-use-modern-findpython-module.patch
-      - patches/pybind11_protobuf/0005-install-headers.patch
-      - patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch
-  - url: https://github.com/pybind/pybind11_abseil/archive/{{ pybind11_abseil_commit_id }}.tar.gz
-    sha256: d977f05b4be67c49f3d2b4795d0daf513f7098a0261b66badb0fa573a1f01391
-    folder: pybind11_abseil
-    patches:
-      - patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch
-      - patches/pybind11_abseil/0002-use-modern-findpython-module.patch
-      - patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch
-      - patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch
-      - patches/pybind11_abseil/0005-install-headers.patch
+      - patches/0003-use-better-patches-for-vendored-pybind11_abseil.patch
+      - patches/0004-use-better-patches-for-vendored-pybind11_protobuf.patch
 
 # The meta package
 build:
@@ -50,6 +33,7 @@ build:
 requirements:
   build:
     - patch  # [not win]
+    - git  # [not win]
   host:
     - python
 
@@ -131,6 +115,9 @@ outputs:
         # Conda build failing to identify this shared library.
         # A test has been added instead for osx-64
         - '*/libortools.9.dylib'  # [osx and x86_64]
+      # ignore_run_exports:
+      #   - coin-or-osi
+      #   - coin-or-cgl
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -142,6 +129,7 @@ outputs:
         - swig >=4.0
         - patch  # [not win]
         - python
+        - git  # [not win]
       host:
         - python
         - pip
@@ -155,10 +143,6 @@ outputs:
         - libprotobuf {{ libprotobuf }}
         - libprotobuf-python-headers {{ libprotobuf }}
         - pybind11 {{ pybind11 }}
-        # - pybind11_protobuf 3b11990
-        - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
-        # - pybind11_abseil 52f2739
-        - {{ pin_subpackage('pybind11_abseil', exact=True) }}
         - re2 {{ re2 }}
         - zlib
         # coin or deps
@@ -176,17 +160,12 @@ outputs:
         - immutabledict 4.2.0
       run:
         - python
-        - mypy-protobuf {{ mypy_protobuf }}
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
         - absl-py >=2.0.0
         - {{ pin_compatible('numpy') }}
         - pandas >=2.0.0
         - protobuf {{ libprotobuf }}
         - immutabledict >=3.0.0
-        # - pybind11_protobuf 3b11990
-        - {{ pin_subpackage('pybind11_protobuf', exact=True) }}
-        # - pybind11_abseil 52f2739
-        - {{ pin_subpackage('pybind11_abseil', exact=True) }}
     test:
       requires:
         - pip
@@ -202,101 +181,6 @@ outputs:
       source_files:
         - cmake/samples/python/sample.py
         - ortools/sat/samples/assignment_sat.py
-
-  # The pybind11_protobuf package, used by ortools-python.
-  - name: pybind11_protobuf
-    # The version is a placeholder, to avoid setting its version
-    # like the rest of the recipe (e.g. 9.9). The commit id is
-    # used (see above).
-    version: {{ pybind11_protobuf_commit_id }}
-    script: build-pybind11_protobuf.sh
-    requirements:
-      build:
-        - {{ compiler('cxx') }}
-        - cmake {{ cmake }}
-        - ninja
-        - python
-      host:
-        - python
-        # These must align with ortools-python,
-        # rather than upstream
-        - libabseil {{ libabseil }}
-        - libprotobuf {{ libprotobuf }}
-        - libprotobuf-python-headers {{ libprotobuf }}
-        - pybind11 {{ pybind11 }}
-      run:
-        - python
-    test:
-        # pybind_protobuf is not exported as a Python module, therefore we cannot
-        # import it. See other comment about pybind11_proto_utils in the tests commands
-      commands:
-        # static libraries
-        - test -f $PREFIX/lib/libpybind11_native_proto_caster.a
-        # Shared libraries
-        - test -f $PREFIX/lib/libpybind11_wrapped_proto_caster${SHLIB_EXT}
-        # For Python extension modules: Always expect .so files, even on macOS.
-        #
-        # pybind11_proto_utils is not a standalone Python module. Instead, it is
-        # a supporting library that should be linked with other pybind11-based
-        # extensions (see pybind11_protobuf readme).
-        # This tests that it is installed in a directory where other modules can
-        # find and link against it during compilation.
-        - test -f $PREFIX/lib/pybind11_proto_utils*.so
-        # config and targets
-        - test -f $PREFIX/lib/cmake/pybind11_protobuf/pybind11_protobufTargets.cmake
-        - test -f $PREFIX/lib/cmake/pybind11_protobuf/pybind11_protobufConfig.cmake
-        # key headers
-        - test -f $PREFIX/include/pybind11_protobuf/check_unknown_fields.h
-        - test -f $PREFIX/include/pybind11_protobuf/wrapped_proto_caster.h
-        - test -f $PREFIX/include/pybind11_protobuf/native_proto_caster.h
-
-  # The pybind11_abseil package, used by ortools-python
-  - name: pybind11_abseil
-    # The version is a placeholder, to avoid setting its version
-    # like the rest of the recipe (e.g. 9.9). The commit id is
-    # used (see above).
-    version: {{ pybind11_abseil_commit_id }}
-    script: build-pybind11_abseil.sh
-    requirements:
-      build:
-        - {{ compiler('cxx') }}
-        - cmake {{ cmake }}
-        - ninja
-        - python
-      host:
-        - python
-        # These must align with ortools-python,
-        # rather than upstream
-        - libabseil {{ libabseil }}
-        - libprotobuf {{ libprotobuf }}
-        - pybind11 {{ pybind11 }}
-      run:
-        - python
-        - absl-py
-        - numpy >=1.13.3
-    test:
-      imports:
-        - pybind11_abseil
-        - pybind11_abseil.status
-        - pybind11_abseil.ok_status_singleton
-      requires:
-        - pip
-      commands:
-        - pip check
-        # Shared libraries
-        # For Python extension modules: Always expect .so files, even on macOS.
-        - test -f $SP_DIR/pybind11_abseil/status*.so
-        - test -f $SP_DIR/pybind11_abseil/ok_status_singleton*.so
-        # For osx intermediate shared libraries are not installed
-        - test -f $PREFIX/lib/libabsl_status${SHLIB_EXT}  # [linux]
-        - test -f $PREFIX/lib/libabsl_base${SHLIB_EXT}  # [linux]
-        - test -f $PREFIX/lib/libabsl_log_entry${SHLIB_EXT}  # [linux]
-        # Config and targets
-        - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilTargets.cmake
-        - test -f $PREFIX/lib/cmake/pybind11_abseil/pybind11_abseilConfig.cmake
-        # Key headers
-        - test -f $PREFIX/include/pybind11_abseil/status_caster.h
-        - test -f $PREFIX/include/pybind11_abseil/absl_casters.h
 
 about:
   home: https://developers.google.com/optimization

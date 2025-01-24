@@ -21,8 +21,8 @@ cmake -G Ninja \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_PYTHON=ON \
       -DBUILD_pybind11=OFF \
-      -DBUILD_pybind11_abseil=OFF \
-      -DBUILD_pybind11_protobuf=OFF \
+      -DBUILD_pybind11_abseil=ON \
+      -DBUILD_pybind11_protobuf=ON \
       -DFETCH_PYTHON_DEPS=OFF \
       -DBUILD_TESTING=OFF \
       -DPython3_EXECUTABLE="$PYTHON" \
@@ -31,7 +31,11 @@ cmake -G Ninja \
       -DPython3_FIND_VIRTUALENV=ONLY \
       -DPython3_FIND_STRATEGY=LOCATION \
       -DPython3_EXECUTABLE=${PREFIX}/bin/python \
-      -DPython3_LIBRARY=%PREFIX%\libs\python%PY_VER:~0,1%%PY_VER:~2,2%.lib
+      -DPython3_LIBRARY=%PREFIX%\libs\python%PY_VER:~0,1%%PY_VER:~2,2%.lib \
+      -DCMAKE_INSTALL_PYDIR=$SP_DIR \
+      -DPython_EXECUTABLE=$PYTHON \
+      -DCMAKE_VERBOSE_MAKEFILE=ON \
+      -DBUILD_TESTS=OFF
 
 cmake --build build -j"${CPU_COUNT}"
 

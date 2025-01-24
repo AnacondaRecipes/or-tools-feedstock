@@ -1,7 +1,7 @@
 From f143acc40e4a51155fdf8072da3f4febacab5c3b Mon Sep 17 00:00:00 2001
 From: Lorenzo Pirritano <lpirritano@anaconda.com>
 Date: Fri, 10 Jan 2025 16:52:42 +0100
-Subject: [PATCH 2/2] add pybind11_abseil as dependency
+Subject: [PATCH 2/4] add pybind11_abseil as dependency
 
 ---
  cmake/deps.cmake | 24 ++++++++++++++++++++++++

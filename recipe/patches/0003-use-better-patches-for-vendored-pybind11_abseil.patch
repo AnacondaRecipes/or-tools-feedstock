@@ -1,0 +1,423 @@
+From 6efae234a57523ed8de7c6a2950359e2ef08e497 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Fri, 24 Jan 2025 13:18:38 +0100
+Subject: [PATCH 3/4] use better patches for vendored pybind11_abseil
+
+---
+ cmake/dependencies/CMakeLists.txt             |   7 +-
+ ...01-use-installed-abseil-and-pybind11.patch |  46 ++++++
+ .../0002-use-modern-findpython-module.patch   |  31 ++++
+ .../0003-apply-or-tools-team-patch.patch      | 150 ++++++++++++++++++
+ ...d-cmake-target-and-config-generation.patch |  96 +++++++++++
+ .../0005-install-headers.patch                |  30 ++++
+ 6 files changed, 359 insertions(+), 1 deletion(-)
+ create mode 100644 patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch
+ create mode 100644 patches/pybind11_abseil/0002-use-modern-findpython-module.patch
+ create mode 100644 patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch
+ create mode 100644 patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch
+ create mode 100644 patches/pybind11_abseil/0005-install-headers.patch
+
+diff --git a/cmake/dependencies/CMakeLists.txt b/cmake/dependencies/CMakeLists.txt
+index 3ee30fe..bedfbee 100644
+--- a/cmake/dependencies/CMakeLists.txt
++++ b/cmake/dependencies/CMakeLists.txt
+@@ -182,7 +182,12 @@ if(BUILD_PYTHON AND BUILD_pybind11_abseil)
+     pybind11_abseil
+     GIT_REPOSITORY "https://github.com/pybind/pybind11_abseil.git" # 2024/01/11
+     GIT_TAG "52f27398876a3177049977249e004770bd869e61"
+-    PATCH_COMMAND git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_abseil.patch"
++    PATCH_COMMAND
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_abseil/0002-use-modern-findpython-module.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_abseil/0005-install-headers.patch"
+   )
+   FetchContent_MakeAvailable(pybind11_abseil)
+   list(POP_BACK CMAKE_MESSAGE_INDENT)
+diff --git a/patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch b/patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch
+new file mode 100644
+index 0000000..091bd62
+--- /dev/null
++++ b/patches/pybind11_abseil/0001-use-installed-abseil-and-pybind11.patch
+@@ -0,0 +1,46 @@
++From 134976c952d582eb5e922a66efcf84ca5e04160d Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Thu, 9 Jan 2025 13:29:26 +0100
++Subject: [PATCH 1/5] use installed abseil and pybind11
++
++---
++ CMakeLists.txt | 22 ++++++++++++----------
++ 1 file changed, 12 insertions(+), 10 deletions(-)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index ceb65a8..2db8543 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -16,17 +16,19 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
++   cmake_policy(SET CMP0135 NEW)
++ endif()
++ 
++-FetchContent_Declare(
++-  abseil-cpp
++-  URL https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.0.tar.gz
++-  URL_HASH
++-    SHA256=59d2976af9d6ecf001a81a35749a6e551a335b949d34918cfade07737b9d93c5)
++-
++-FetchContent_Declare(
++-  pybind11
++-  URL https://github.com/pybind/pybind11/archive/refs/heads/master.tar.gz)
+++find_package(absl REQUIRED)
+++if(absl_FOUND)
+++  message(STATUS "Found Abseil version: ${absl_VERSION}")
+++else()
+++  message(FATAL_ERROR "Required Abseil, not found.")
+++endif()
++ 
++-FetchContent_MakeAvailable(abseil-cpp pybind11)
+++find_package(pybind11 REQUIRED)
+++if(pybind11_FOUND)
+++  message(STATUS "Found pybind11 version ${pybind11_VERSION}")
+++else()
+++  message(FATAL_ERROR "Required pybind11, not found.")
+++endif()
++ 
++ set(TOP_LEVEL_DIR ${CMAKE_CURRENT_LIST_DIR})
++ include_directories(${TOP_LEVEL_DIR} ${pybind11_INCLUDE_DIRS})
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_abseil/0002-use-modern-findpython-module.patch b/patches/pybind11_abseil/0002-use-modern-findpython-module.patch
+new file mode 100644
+index 0000000..48e9990
+--- /dev/null
++++ b/patches/pybind11_abseil/0002-use-modern-findpython-module.patch
+@@ -0,0 +1,31 @@
++From 233910ece681656dc21bdc5dbe1f3cb0e1ed9fc3 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Thu, 9 Jan 2025 14:13:08 +0100
++Subject: [PATCH 2/5] use modern findpython module
++
++---
++ CMakeLists.txt | 8 ++++++++
++ 1 file changed, 8 insertions(+)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 2db8543..4671e75 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -23,6 +23,14 @@ else()
++   message(FATAL_ERROR "Required Abseil, not found.")
++ endif()
++ 
+++# Use modern FindPython module
+++set(PYBIND11_FINDPYTHON ON)
+++find_package(Python COMPONENTS Interpreter Development REQUIRED)
+++message(STATUS "Python executable: ${Python_EXECUTABLE}")
+++message(STATUS "Python version: ${Python_VERSION}")
+++message(STATUS "Python include dirs: ${Python_INCLUDE_DIRS}")
+++message(STATUS "Python libraries: ${Python_LIBRARIES}")
+++
++ find_package(pybind11 REQUIRED)
++ if(pybind11_FOUND)
++   message(STATUS "Found pybind11 version ${pybind11_VERSION}")
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch b/patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch
+new file mode 100644
+index 0000000..2acebc8
+--- /dev/null
++++ b/patches/pybind11_abseil/0003-apply-or-tools-team-patch.patch
+@@ -0,0 +1,150 @@
++From 18f5d12db9a921942e899f9a615dd973bef7e5db Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Thu, 9 Jan 2025 17:03:33 +0100
++Subject: [PATCH 3/5] apply or tools team patch
++
++---
++ pybind11_abseil/CMakeLists.txt       | 44 +++++++++++++++++++---------
++ pybind11_abseil/tests/CMakeLists.txt |  8 ++---
++ 2 files changed, 34 insertions(+), 18 deletions(-)
++
++diff --git a/pybind11_abseil/CMakeLists.txt b/pybind11_abseil/CMakeLists.txt
++index d1b7483..ce7fd72 100644
++--- a/pybind11_abseil/CMakeLists.txt
+++++ b/pybind11_abseil/CMakeLists.txt
++@@ -42,14 +42,19 @@ target_link_libraries(ok_status_singleton_pyinit_google3
++ 
++ # ok_status_singleton =======================================================
++ 
++-add_library(ok_status_singleton SHARED ok_status_singleton_py_extension_stub.cc)
+++pybind11_add_module(ok_status_singleton MODULE ok_status_singleton_py_extension_stub.cc)
++ add_library(pybind11_abseil::ok_status_singleton ALIAS ok_status_singleton)
++ 
+++# note: macOS is APPLE and also UNIX !
+++if(APPLE)
+++  set_target_properties(ok_status_singleton PROPERTIES SUFFIX ".so")
+++  set_property(TARGET ok_status_singleton APPEND PROPERTY
+++    LINK_FLAGS "-flat_namespace -undefined suppress")
+++endif()
+++
++ target_include_directories(ok_status_singleton
++                            INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
++ 
++-set_target_properties(ok_status_singleton PROPERTIES PREFIX "")
++-
++ target_link_libraries(ok_status_singleton
++                       PUBLIC ok_status_singleton_pyinit_google3)
++ 
++@@ -150,14 +155,23 @@ target_link_libraries(status_pyinit_google3 PUBLIC register_status_bindings)
++ 
++ # status ====================================================================
++ 
++-add_library(status SHARED status_py_extension_stub.cc)
++-add_library(pybind11_abseil::status ALIAS status)
+++pybind11_add_module(status_py_extension_stub MODULE status_py_extension_stub.cc)
+++
+++set_target_properties(status_py_extension_stub PROPERTIES LIBRARY_OUTPUT_NAME "status")
+++# note: macOS is APPLE and also UNIX !
+++if(APPLE)
+++  set_target_properties(status_py_extension_stub PROPERTIES SUFFIX ".so")
+++  set_property(TARGET status_py_extension_stub APPEND PROPERTY
+++    LINK_FLAGS "-flat_namespace -undefined suppress")
+++endif()
+++
+++add_library(pybind11_abseil::status ALIAS status_py_extension_stub)
++ 
++-target_include_directories(status INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
+++target_include_directories(status_py_extension_stub INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
++ 
++-set_target_properties(status PROPERTIES PREFIX "")
+++set_target_properties(status_py_extension_stub PROPERTIES PREFIX "")
++ 
++-target_link_libraries(status PUBLIC status_pyinit_google3 absl::status)
+++target_link_libraries(status_py_extension_stub PUBLIC status_pyinit_google3 absl::status)
++ 
++ # import_status_module =========================================================
++ 
++@@ -167,7 +181,7 @@ add_library(pybind11_abseil::import_status_module ALIAS import_status_module)
++ target_include_directories(import_status_module
++                            INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
++ 
++-target_link_libraries(import_status_module PUBLIC status)
+++add_dependencies(import_status_module status_py_extension_stub)
++ 
++ # status_casters ===============================================================
++ 
++@@ -175,25 +189,27 @@ add_library(status_casters INTERFACE)
++ add_library(pybind11_abseil::status_casters ALIAS status_casters)
++ 
++ target_include_directories(status_casters
++-                           INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
+++  INTERFACE $<BUILD_INTERFACE:${TOP_LEVEL_DIR}>)
++ 
++ target_link_libraries(status_casters INTERFACE import_status_module
++-                                               status_caster statusor_caster)
+++  status_caster statusor_caster)
++ 
++-add_subdirectory(tests)
+++if(BUILD_TESTING)
+++  add_subdirectory(tests)
+++endif()
++ 
++ if(CMAKE_INSTALL_PYDIR)
++   # Copying to two target directories for simplicity. It is currently unknown
++   # how to determine here which copy is actually being used.
++   install(
++-    TARGETS status ok_status_singleton
+++    TARGETS status_py_extension_stub ok_status_singleton
++     EXPORT pybind11_abseilTargets
++     LIBRARY DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
++     ARCHIVE DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
++     RUNTIME DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil)
++ 
++   install(
++-    TARGETS status ok_status_singleton
+++    TARGETS status_py_extension_stub ok_status_singleton
++     EXPORT pybind11_abseil_cppTargets
++     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++diff --git a/pybind11_abseil/tests/CMakeLists.txt b/pybind11_abseil/tests/CMakeLists.txt
++index a423c30..ae22a48 100644
++--- a/pybind11_abseil/tests/CMakeLists.txt
+++++ b/pybind11_abseil/tests/CMakeLists.txt
++@@ -1,6 +1,6 @@
++ # cpp_capsule_tools_testing ====================================================
++ 
++-pybind11_add_module(cpp_capsule_tools_testing SHARED
+++pybind11_add_module(cpp_capsule_tools_testing MODULE
++                     cpp_capsule_tools_testing.cc)
++ 
++ target_link_libraries(
++@@ -26,7 +26,7 @@ add_test(
++ 
++ # absl_example =================================================================
++ 
++-pybind11_add_module(absl_example SHARED absl_example.cc)
+++pybind11_add_module(absl_example MODULE absl_example.cc)
++ 
++ target_link_libraries(
++   absl_example
++@@ -57,7 +57,7 @@ add_test(
++ 
++ # missing_import ===============================================================
++ 
++-pybind11_add_module(missing_import SHARED missing_import.cc)
+++pybind11_add_module(missing_import MODULE missing_import.cc)
++ 
++ target_compile_options(missing_import PUBLIC -UNDEBUG)
++ 
++@@ -83,7 +83,7 @@ add_test(
++ 
++ # status_example ===============================================================
++ 
++-pybind11_add_module(status_example SHARED status_example.cc)
+++pybind11_add_module(status_example MODULE status_example.cc)
++ 
++ target_link_libraries(status_example PRIVATE status_casters absl::status
++                                              absl::statusor)
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch b/patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch
+new file mode 100644
+index 0000000..c0a80f8
+--- /dev/null
++++ b/patches/pybind11_abseil/0004-add-cmake-target-and-config-generation.patch
+@@ -0,0 +1,96 @@
++From fc4ae2807ca210119156c176c96f42b44788f8a1 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Fri, 10 Jan 2025 17:58:46 +0100
++Subject: [PATCH 4/5] add-cmake-target-and-config-generation
++
++---
++ pybind11_abseil/CMakeLists.txt                | 39 ++++++++++++++-----
++ .../pybind11_abseilConfig.cmake.in            | 21 ++++++++++
++ 2 files changed, 51 insertions(+), 9 deletions(-)
++ create mode 100644 pybind11_abseil/pybind11_abseilConfig.cmake.in
++
++diff --git a/pybind11_abseil/CMakeLists.txt b/pybind11_abseil/CMakeLists.txt
++index ce7fd72..936e53a 100644
++--- a/pybind11_abseil/CMakeLists.txt
+++++ b/pybind11_abseil/CMakeLists.txt
++@@ -199,20 +199,41 @@ if(BUILD_TESTING)
++ endif()
++ 
++ if(CMAKE_INSTALL_PYDIR)
++-  # Copying to two target directories for simplicity. It is currently unknown
++-  # how to determine here which copy is actually being used.
+++  # Install all targets required for the project
++   install(
++     TARGETS status_py_extension_stub ok_status_singleton
+++            status_pyinit_google3 ok_status_singleton_pyinit_google3
+++            register_status_bindings ok_status_singleton_lib
+++            absl_casters init_from_tag no_throw_status status_caster
+++            status_not_ok_exception utils_pybind11_absl raw_ptr_from_capsule
+++            check_status_module_imported status_from_py_exc void_ptr_from_capsule
+++            py_base_utilities status_from_core_py_exc
+++            import_status_module statusor_caster status_casters
++     EXPORT pybind11_abseilTargets
++     LIBRARY DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
++     ARCHIVE DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
++-    RUNTIME DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil)
+++    RUNTIME DESTINATION ${CMAKE_INSTALL_PYDIR}/pybind11_abseil
+++  )
++ 
+++  # Generate and install the export file for these targets
++   install(
++-    TARGETS status_py_extension_stub ok_status_singleton
++-    EXPORT pybind11_abseil_cppTargets
++-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
++-
+++    EXPORT pybind11_abseilTargets
+++    FILE pybind11_abseilTargets.cmake
+++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil
+++  )
+++  message(STATUS "Destination for pybind11_abseilTargets.cmake at ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil")
+++
+++  # Generate and install the package configuration file
+++  include(CMakePackageConfigHelpers)
+++  configure_package_config_file(
+++    "${CMAKE_CURRENT_SOURCE_DIR}/pybind11_abseilConfig.cmake.in"
+++    "${CMAKE_CURRENT_BINARY_DIR}/pybind11_abseilConfig.cmake"
+++    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil"
+++  )
+++  message(STATUS "Generated pybind11_abseilConfig.cmake at ${CMAKE_CURRENT_BINARY_DIR}/pybind11_abseilConfig.cmake")
+++  install(
+++    FILES "${CMAKE_CURRENT_BINARY_DIR}/pybind11_abseilConfig.cmake"
+++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil
+++  )
+++  message(STATUS "Destination for pybind11_abseilConfig.cmake at ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil")
++ endif()
++diff --git a/pybind11_abseil/pybind11_abseilConfig.cmake.in b/pybind11_abseil/pybind11_abseilConfig.cmake.in
++new file mode 100644
++index 0000000..76a5a25
++--- /dev/null
+++++ b/pybind11_abseil/pybind11_abseilConfig.cmake.in
++@@ -0,0 +1,21 @@
+++@PACKAGE_INIT@
+++
+++include("${CMAKE_CURRENT_LIST_DIR}/pybind11_abseilTargets.cmake")
+++
+++# Ensure dependencies are available
+++find_dependency(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
+++find_dependency(pybind11 REQUIRED)
+++
+++# Define the namespace
+++set(PYBIND11_ABSEIL_NAMESPACE "pybind11_abseil::")
+++
+++# Recreate aliases for exported targets
+++add_library(pybind11_abseil::status_casters ALIAS status_casters)
+++add_library(pybind11_abseil::import_status_module ALIAS import_status_module)
+++add_library(pybind11_abseil::status ALIAS status_py_extension_stub)
+++add_library(pybind11_abseil::init_from_tag ALIAS init_from_tag)
+++add_library(pybind11_abseil::statusor_caster ALIAS statusor_caster)
+++add_library(pybind11_abseil::no_throw_status ALIAS no_throw_status)
+++add_library(pybind11_abseil::ok_status_singleton ALIAS ok_status_singleton)
+++add_library(pybind11_abseil::absl_casters ALIAS absl_casters)
+++add_library(pybind11_abseil::status_caster ALIAS status_caster)
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_abseil/0005-install-headers.patch b/patches/pybind11_abseil/0005-install-headers.patch
+new file mode 100644
+index 0000000..37a2363
+--- /dev/null
++++ b/patches/pybind11_abseil/0005-install-headers.patch
+@@ -0,0 +1,30 @@
++From 1870eed5359435ff0c0d8430e3c447e8ecf4be68 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Mon, 13 Jan 2025 15:20:20 +0100
++Subject: [PATCH 5/5] install headers
++
++---
++ pybind11_abseil/CMakeLists.txt | 9 +++++++++
++ 1 file changed, 9 insertions(+)
++
++diff --git a/pybind11_abseil/CMakeLists.txt b/pybind11_abseil/CMakeLists.txt
++index 936e53a..54b107c 100644
++--- a/pybind11_abseil/CMakeLists.txt
+++++ b/pybind11_abseil/CMakeLists.txt
++@@ -236,4 +236,13 @@ if(CMAKE_INSTALL_PYDIR)
++     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil
++   )
++   message(STATUS "Destination for pybind11_abseilConfig.cmake at ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_abseil")
+++
+++  # Install headers
+++  message(STATUS "Install headers from ${CMAKE_CURRENT_SOURCE_DIR}/ to include/pybind11_abseil")
+++  install(
+++    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+++    DESTINATION include/pybind11_abseil
+++    FILES_MATCHING PATTERN "*.h"
+++    PATTERN "tests" EXCLUDE
+++  )
++ endif()
++-- 
++2.39.1
++
+-- 
+2.39.1
+
