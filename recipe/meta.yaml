@@ -1,15 +1,26 @@
-{% set version = "9.4" %}
+{% set version = "9.9" %}
+# pinnings
+{% set cmake = ">=3.18" %}
+{% set libabseil = "20240116.2*" %}
+{% set re2 = "2024-02-01" %}
+{% set mypy_protobuf = "3.6.0" %}
+{% set mypy = "1.14.1" %}
+{% set eigen = "3.4.0" %}
+{% set pybind11 = "2.13.6" %}
 
 package:
   name: or-tools-package
   version: {{ version }}
 
 source:
-  url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
-  sha256: 180fbc45f6e5ce5ff153bea2df0df59b15346f2a7f8ffbd7cb4aed0fb484b8f6
-  patches:
-    - patches/0001_3.11_support.patch
-    - patches/0002_s390x_cast.patch
+  - url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
+    sha256: 8c17b1b5b05d925ed03685522172ca87c2912891d57a5e0d5dcaeff8f06a4698
+    patches:
+      - patches/0000-s390x_cast.patch
+      - patches/0001-3.13_support.patch
+      - patches/0002-add-pybind11_abseil-as-dependency.patch
+      - patches/0003-use-better-patches-for-vendored-pybind11_abseil.patch
+      - patches/0004-use-better-patches-for-vendored-pybind11_protobuf.patch
 
 # The meta package
 build:
@@ -19,26 +30,10 @@ build:
 
 requirements:
   build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - git  # [not win]
-    - cmake >=3.18
-    - ninja
-    - pkg-config
     - patch  # [not win]
+    # git used for vendored pybind11_protobuf and pybind11_abseil
+    - git    # [not win]
   host:
-    # eigen and abseil-cpp are being vendored atm.
-    # - eigen 3.4.0
-    # - abseil-cpp 20211102.0
-    - libprotobuf {{ libprotobuf }}
-    - re2
-    - zlib
-    # coin or deps
-    - coin-or-utils 2.11.6
-    - coin-or-osi 0.108.7
-    - coin-or-clp 1.17.7
-    - coin-or-cgl 0.60.5
-    - coin-or-cbc 2.10.7
     - python
 
 outputs:
@@ -57,19 +52,16 @@ outputs:
         - '*/libortools.9.dylib'  # [osx and x86_64]
     requirements:
       build:
-        - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - git  # [not win]
-        - cmake >=3.18
+        - cmake {{ cmake }}
         - ninja
         - pkg-config
         - patch  # [not win]
       host:
-        # eigen and abseil-cpp are being vendored atm.
-        # - eigen 3.4.0
-        # - abseil-cpp 20211102.0
+        - eigen {{ eigen }}
+        - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
-        - re2
+        - re2 {{ re2 }}
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -84,7 +76,6 @@ outputs:
       run_constrained:
         # make sure we don't co-install with old version of previous package name
         - ortools-cpp ={{ version }}
-
     test:
       commands:
         - test -f $PREFIX/lib/libortools${SHLIB_EXT}
@@ -110,8 +101,9 @@ outputs:
         - {{ pin_subpackage('libortools', exact=True) }}
     test:
       commands:
-        # tested in other outputs
-        - echo "hello"
+        # just make sure that everything worked,
+        # the rest are already tested in libortools
+        - test -f $PREFIX/lib/libortools${SHLIB_EXT}
 
   # The python package.
   - name: ortools-python
@@ -122,36 +114,35 @@ outputs:
         # Conda build failing to identify this shared library.
         # A test has been added instead for osx-64
         - '*/libortools.9.dylib'  # [osx and x86_64]
-
+      # ignore_run_exports:
+      #   - coin-or-osi
+      #   - coin-or-cgl
     requirements:
       build:
-        - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - cmake >=3.18
-        - git  # [not win]
+        - cmake {{ cmake }}
         - ninja
-        - python
-        - mypy-protobuf
+        - mypy-protobuf {{ mypy_protobuf }}
+        - mypy {{ mypy }}
         - pkg-config
         - swig >=4.0
         - patch  # [not win]
+        - python
+        - git  # [not win]
       host:
         - python
         - pip
-        - absl-py 0.15.0
-        - numpy
-        - mypy-protobuf 3.3.0
-        - protobuf
-        - scipy >=1.10
         - wheel
         - setuptools
+        - mypy-protobuf {{ mypy_protobuf }}
+        - mypy {{ mypy }}
         # C/C++ deps
-        # eigen and abseil-cpp are being vendored atm.
-        # - eigen 3.4.0
-        # - abseil-cpp 20211102.0
+        - eigen {{ eigen }}
+        - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
-        - pybind11 2.10.1
-        - re2
+        - libprotobuf-python-headers {{ libprotobuf }}
+        - pybind11 {{ pybind11 }}
+        - re2 {{ re2 }}
         - zlib
         # coin or deps
         - coin-or-utils 2.11.6
@@ -159,18 +150,25 @@ outputs:
         - coin-or-clp 1.17.7
         - coin-or-cgl 0.60.5
         - coin-or-cbc 2.10.7
+        # Source:
+        # https://github.com/google/or-tools/blob/v9.9/ortools/python/setup.py.in#L44
+        - absl-py 2.1.0
+        - numpy 2.0.1
+        - pandas 2.2.3
+        - protobuf {{ libprotobuf }}
+        - immutabledict 4.2.0
       run:
         - python
-        - absl-py >=0.13
-        - mypy-protobuf
-        - {{ pin_compatible('numpy') }}
-        - protobuf
-        - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
-
+        - absl-py >=2.0.0
+        - {{ pin_compatible('numpy') }}
+        - pandas >=2.0.0
+        - protobuf {{ libprotobuf }}
+        - immutabledict >=3.0.0
     test:
       requires:
         - pip
+        - scipy >=1.10
       imports:
         - ortools
         - ortools.linear_solver.pywraplp
@@ -199,6 +197,7 @@ about:
     Gurobi or CPLEX, or open-source solvers such as SCIP, GLPK, or Google's GLOP
     and award-winning CP-SAT.
   dev_url: https://github.com/google/or-tools
+  doc_url: https://developers.google.com/optimization
 
 extra:
   recipe-maintainers:

@@ -1,0 +1,327 @@
+From ba2754fd41f0b2fa0ae45c67b306e9706de31ef4 Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Fri, 24 Jan 2025 13:42:05 +0100
+Subject: [PATCH 4/4] use better patches for vendored pybind11_protobuf
+
+---
+ cmake/dependencies/CMakeLists.txt             |  8 ++-
+ .../0001-fix-python-headers.patch             | 39 +++++++++++
+ ...-install-and-cmake-config-generation.patch | 64 +++++++++++++++++++
+ ...e-installed-abseil-protobuf-pybind11.patch | 53 +++++++++++++++
+ .../0004-use-modern-findpython-module.patch   | 30 +++++++++
+ .../0005-install-headers.patch                | 28 ++++++++
+ .../0006-apply-or-tools-team-patch.patch      | 34 ++++++++++
+ 7 files changed, 255 insertions(+), 1 deletion(-)
+ create mode 100644 patches/pybind11_protobuf/0001-fix-python-headers.patch
+ create mode 100644 patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch
+ create mode 100644 patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch
+ create mode 100644 patches/pybind11_protobuf/0004-use-modern-findpython-module.patch
+ create mode 100644 patches/pybind11_protobuf/0005-install-headers.patch
+ create mode 100644 patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch
+
+diff --git a/cmake/dependencies/CMakeLists.txt b/cmake/dependencies/CMakeLists.txt
+index bedfbee..e0f9e79 100644
+--- a/cmake/dependencies/CMakeLists.txt
++++ b/cmake/dependencies/CMakeLists.txt
+@@ -201,7 +201,13 @@ if(BUILD_PYTHON AND BUILD_pybind11_protobuf)
+     pybind11_protobuf
+     GIT_REPOSITORY "https://github.com/pybind/pybind11_protobuf.git"
+     GIT_TAG "3b11990a99dea5101799e61d98a82c4737d240cc" # 2024/01/04
+-    PATCH_COMMAND git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf.patch"
++    PATCH_COMMAND
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf/0001-fix-python-headers.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf/0004-use-modern-findpython-module.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf/0005-install-headers.patch" &&
++      git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch"
+   )
+   FetchContent_MakeAvailable(pybind11_protobuf)
+   list(POP_BACK CMAKE_MESSAGE_INDENT)
+diff --git a/patches/pybind11_protobuf/0001-fix-python-headers.patch b/patches/pybind11_protobuf/0001-fix-python-headers.patch
+new file mode 100644
+index 0000000..dba7df5
+--- /dev/null
++++ b/patches/pybind11_protobuf/0001-fix-python-headers.patch
+@@ -0,0 +1,39 @@
++From 15ef9c8be4b636f563a2976c08b1e1bd6040881a Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Fri, 3 Jan 2025 16:34:59 +0100
++Subject: [PATCH 1/6] fix python headers
++
++---
++ pybind11_protobuf/check_unknown_fields.h | 2 +-
++ pybind11_protobuf/proto_cast_util.cc     | 2 +-
++ 2 files changed, 2 insertions(+), 2 deletions(-)
++
++diff --git a/pybind11_protobuf/check_unknown_fields.h b/pybind11_protobuf/check_unknown_fields.h
++index e37adc7..94c318d 100644
++--- a/pybind11_protobuf/check_unknown_fields.h
+++++ b/pybind11_protobuf/check_unknown_fields.h
++@@ -4,7 +4,7 @@
++ #include <optional>
++ 
++ #include "google/protobuf/message.h"
++-#include "python/google/protobuf/proto_api.h"
+++#include "google/protobuf/proto_api.h"
++ #include "absl/strings/string_view.h"
++ 
++ namespace pybind11_protobuf::check_unknown_fields {
++diff --git a/pybind11_protobuf/proto_cast_util.cc b/pybind11_protobuf/proto_cast_util.cc
++index 0f7ba29..85792f4 100644
++--- a/pybind11_protobuf/proto_cast_util.cc
+++++ b/pybind11_protobuf/proto_cast_util.cc
++@@ -23,7 +23,7 @@
++ #include "google/protobuf/descriptor.h"
++ #include "google/protobuf/descriptor_database.h"
++ #include "google/protobuf/dynamic_message.h"
++-#include "python/google/protobuf/proto_api.h"
+++#include "google/protobuf/proto_api.h"
++ #include "pybind11_protobuf/check_unknown_fields.h"
++ 
++ #if defined(GOOGLE_PROTOBUF_VERSION)
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch b/patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch
+new file mode 100644
+index 0000000..dce20aa
+--- /dev/null
++++ b/patches/pybind11_protobuf/0002-add-install-and-cmake-config-generation.patch
+@@ -0,0 +1,64 @@
++From 541db7480592e4e5d7ae603ba79bdbbdb6d2ebac Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Wed, 8 Jan 2025 17:07:56 +0100
++Subject: [PATCH 2/6] add install and cmake config generation
++
++---
++ CMakeLists.txt                   | 33 ++++++++++++++++++++++++++++++++
++ pybind11_protobufConfig.cmake.in |  3 +++
++ 2 files changed, 36 insertions(+)
++ create mode 100644 pybind11_protobufConfig.cmake.in
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 46388d1..d11014c 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -139,3 +139,36 @@ target_include_directories(
++ #
++ # proto_cast_util
++ #
+++
+++include(CMakePackageConfigHelpers)
+++
+++# Install the pybind11_proto_utils module
+++install(TARGETS pybind11_proto_utils
+++        EXPORT pybind11_protobufTargets
+++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+++        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+++
+++# Install the shared libraries
+++install(TARGETS pybind11_native_proto_caster pybind11_wrapped_proto_caster
+++        EXPORT pybind11_protobufTargets
+++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+++        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+++
+++# Export the targets for CMake
+++install(EXPORT pybind11_protobufTargets
+++        FILE pybind11_protobufTargets.cmake
+++        NAMESPACE pybind11_protobuf::
+++        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf)
+++
+++# Generate the Config file
+++configure_package_config_file(
+++    "${CMAKE_CURRENT_SOURCE_DIR}/pybind11_protobufConfig.cmake.in"
+++    "${CMAKE_CURRENT_BINARY_DIR}/pybind11_protobufConfig.cmake"
+++    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf
+++)
+++
+++# Install the Config file
+++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pybind11_protobufConfig.cmake"
+++        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf)
++diff --git a/pybind11_protobufConfig.cmake.in b/pybind11_protobufConfig.cmake.in
++new file mode 100644
++index 0000000..f594119
++--- /dev/null
+++++ b/pybind11_protobufConfig.cmake.in
++@@ -0,0 +1,3 @@
+++@PACKAGE_INIT@
+++
+++include("${CMAKE_CURRENT_LIST_DIR}/pybind11_protobufTargets.cmake")
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch b/patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch
+new file mode 100644
+index 0000000..8c13d3e
+--- /dev/null
++++ b/patches/pybind11_protobuf/0003-use-installed-abseil-protobuf-pybind11.patch
+@@ -0,0 +1,53 @@
++From 3758bc66b79cfe294005e5d93949b8d83ee6b382 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Thu, 9 Jan 2025 14:43:00 +0100
++Subject: [PATCH 3/6] use installed abseil, protobuf, pybind11
++
++---
++ CMakeLists.txt | 22 +++++++++++++++++++---
++ 1 file changed, 19 insertions(+), 3 deletions(-)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index d11014c..6215a34 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -29,17 +29,33 @@ find_package(Python COMPONENTS Interpreter Development)
++ set(_absl_repository "https://github.com/abseil/abseil-cpp.git")
++ set(_absl_version 20230125)
++ set(_absl_tag 20230125.3)
++-find_package(absl ${_absl_version} QUIET)
+++find_package(absl REQUIRED)
+++if(absl_FOUND)
+++  message(STATUS "Found Abseil version: ${absl_VERSION}")
+++else()
+++  message(FATAL_ERROR "Required Abseil, not found.")
+++endif()
++ 
++ set(_protobuf_repository "https://github.com/protocolbuffers/protobuf.git")
++ set(_protobuf_version 3.23.3)
++ set(_protobuf_tag v23.3)
++-find_package(Protobuf ${_protobuf_version} QUIET)
+++find_package(Protobuf REQUIRED)
+++if(Protobuf_FOUND)
+++  message(STATUS "Found Protobuf version: ${Protobuf_VERSION}")
+++else()
+++  message(FATAL_ERROR "Required Protobuf, not found.")
+++endif()
+++
++ 
++ set(_pybind11_repository "https://github.com/pybind/pybind11.git")
++ set(_pybind11_version 2.11.1)
++ set(_pybind11_tag v2.11.1)
++-find_package(pybind11 ${_pybind11_version} QUIET)
+++find_package(pybind11 REQUIRED)
+++if(pybind11_FOUND)
+++  message(STATUS "Found pybind11 version: ${pybind11_VERSION}")
+++else()
+++  message(FATAL_ERROR "Required pybind11, not found.")
+++endif()
++ 
++ add_subdirectory(cmake/dependencies dependencies)
++ 
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_protobuf/0004-use-modern-findpython-module.patch b/patches/pybind11_protobuf/0004-use-modern-findpython-module.patch
+new file mode 100644
+index 0000000..a5fe5fe
+--- /dev/null
++++ b/patches/pybind11_protobuf/0004-use-modern-findpython-module.patch
+@@ -0,0 +1,30 @@
++From abf7a72fc2deab066a58150d298794a383cbfbb2 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Thu, 9 Jan 2025 14:43:17 +0100
++Subject: [PATCH 4/6] use-modern-findpython-module
++
++---
++ CMakeLists.txt | 7 +++++++
++ 1 file changed, 7 insertions(+)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 6215a34..798a1cb 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -46,6 +46,13 @@ else()
++   message(FATAL_ERROR "Required Protobuf, not found.")
++ endif()
++ 
+++# Use modern FindPython module
+++set(PYBIND11_FINDPYTHON ON)
+++find_package(Python COMPONENTS Interpreter Development REQUIRED)
+++message(STATUS "Python executable: ${Python_EXECUTABLE}")
+++message(STATUS "Python version: ${Python_VERSION}")
+++message(STATUS "Python include dirs: ${Python_INCLUDE_DIRS}")
+++message(STATUS "Python libraries: ${Python_LIBRARIES}")
++ 
++ set(_pybind11_repository "https://github.com/pybind/pybind11.git")
++ set(_pybind11_version 2.11.1)
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_protobuf/0005-install-headers.patch b/patches/pybind11_protobuf/0005-install-headers.patch
+new file mode 100644
+index 0000000..295bc9a
+--- /dev/null
++++ b/patches/pybind11_protobuf/0005-install-headers.patch
+@@ -0,0 +1,28 @@
++From fa8991b335a0671e3d15b8217239409d9de28942 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Fri, 10 Jan 2025 18:25:03 +0100
++Subject: [PATCH 5/6] install headers
++
++---
++ CMakeLists.txt | 8 ++++++++
++ 1 file changed, 8 insertions(+)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 798a1cb..8632645 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -195,3 +195,11 @@ configure_package_config_file(
++ # Install the Config file
++ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pybind11_protobufConfig.cmake"
++         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pybind11_protobuf)
+++
+++# Install headers
+++install(
+++  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/pybind11_protobuf/
+++  DESTINATION include/pybind11_protobuf
+++  FILES_MATCHING PATTERN "*.h"
+++  PATTERN "tests" EXCLUDE
+++)
++-- 
++2.39.1
++
+diff --git a/patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch b/patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch
+new file mode 100644
+index 0000000..15cd188
+--- /dev/null
++++ b/patches/pybind11_protobuf/0006-apply-or-tools-team-patch.patch
+@@ -0,0 +1,34 @@
++From 6556162f8dab57b3b7ece4ccd3cdd487f90c7757 Mon Sep 17 00:00:00 2001
++From: Lorenzo Pirritano <lpirritano@anaconda.com>
++Date: Mon, 13 Jan 2025 17:43:06 +0100
++Subject: [PATCH 6/6] apply-or-tools-team-patch
++
++---
++ CMakeLists.txt | 4 +++-
++ 1 file changed, 3 insertions(+), 1 deletion(-)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 8632645..c0d10c1 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -83,7 +83,7 @@ target_include_directories(
++ # ============================================================================
++ # pybind11_native_proto_caster shared library
++ add_library(
++-  pybind11_native_proto_caster SHARED
+++  pybind11_native_proto_caster STATIC
++   # bazel: pybind_library: native_proto_caster
++   pybind11_protobuf/native_proto_caster.h
++   # bazel: pybind_library: enum_type_caster
++@@ -109,6 +109,8 @@ target_link_libraries(
++ 
++ target_include_directories(
++   pybind11_native_proto_caster
+++  PUBLIC
+++    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
++   PRIVATE ${PROJECT_SOURCE_DIR} ${protobuf_INCLUDE_DIRS} ${protobuf_SOURCE_DIR}
++           ${pybind11_INCLUDE_DIRS})
++ 
++-- 
++2.39.1
++
+-- 
+2.39.1
+
