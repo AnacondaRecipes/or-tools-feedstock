@@ -1,0 +1,41 @@
+From 9285a8937214d8ad1cb2e33ce7ba71d80daec88b Mon Sep 17 00:00:00 2001
+From: Ivan Iziumov <iiziumov@anaconda.com>
+Date: Thu, 2 Apr 2026 11:56:16 +0200
+Subject: [PATCH] fix dll flags injection
+
+---
+ cmake/cpp.cmake | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/cmake/cpp.cmake b/cmake/cpp.cmake
+index 74def81cca..d9d963755c 100644
+--- a/cmake/cpp.cmake
++++ b/cmake/cpp.cmake
+@@ -506,13 +506,17 @@ function(generate_proto_library)
+    ${PROJECT_BINARY_DIR}
+    #$<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
+  )
+- target_compile_definitions(${PROTO_NAME}_proto PUBLIC ${OR_TOOLS_COMPILE_DEFINITIONS})
+- if(MSVC AND BUILD_SHARED_LIBS)
+-  target_compile_definitions(${PROTO_NAME}_proto INTERFACE "OR_PROTO_DLL=__declspec(dllimport)")
+-  target_compile_definitions(${PROTO_NAME}_proto PRIVATE "OR_PROTO_DLL=__declspec(dllexport)")
+- else()
+-  target_compile_definitions(${PROTO_NAME}_proto PUBLIC "OR_PROTO_DLL=")
+-endif()
++  set(_proto_defs ${OR_TOOLS_COMPILE_DEFINITIONS})
++  list(FILTER _proto_defs EXCLUDE REGEX "^OR_PROTO_DLL")
++  target_compile_definitions(${PROTO_NAME}_proto PUBLIC ${_proto_defs})
++  set_target_properties(${PROTO_NAME}_proto PROPERTIES OR_IS_PROTO_TARGET TRUE)
++  if(MSVC AND BUILD_SHARED_LIBS)
++    target_compile_definitions(${PROTO_NAME}_proto
++      PRIVATE   "OR_PROTO_DLL=__declspec(dllexport)"
++      INTERFACE "$<IF:$<BOOL:$<TARGET_PROPERTY:OR_IS_PROTO_TARGET>>,OR_PROTO_DLL=__declspec(dllexport),OR_PROTO_DLL=__declspec(dllimport)>")
++  else()
++    target_compile_definitions(${PROTO_NAME}_proto PUBLIC "OR_PROTO_DLL=")
++  endif()
+  target_compile_options(${PROTO_NAME}_proto PUBLIC ${OR_TOOLS_COMPILE_OPTIONS})
+  target_link_libraries(${PROTO_NAME}_proto PUBLIC protobuf::libprotobuf ${PROTO_LINK_LIBRARIES})
+  add_library(${PROJECT_NAMESPACE}::${PROTO_NAME}_proto ALIAS ${PROTO_NAME}_proto)
+-- 
+2.50.1 (Apple Git-155)
+

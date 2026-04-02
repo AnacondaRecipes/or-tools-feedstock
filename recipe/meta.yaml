@@ -1,74 +1,59 @@
-{% set version = "9.9" %}
-# pinnings
-{% set cmake = ">=3.18" %}
-{% set libabseil = "20240116.2*" %}
-{% set re2 = "2024-02-01" %}
-{% set mypy_protobuf = "3.6.0" %}
-{% set mypy = "1.14.1" %}
-{% set eigen = "3.4.0" %}
-{% set pybind11 = "2.13.6" %}
+{% set name = "or-tools" %}
+{% set version = "9.15" %}
 
 package:
-  name: or-tools-package
+  name: {{ name }}-package
   version: {{ version }}
 
 source:
-  - url: https://github.com/google/or-tools/archive/v{{ version }}.tar.gz
-    sha256: 8c17b1b5b05d925ed03685522172ca87c2912891d57a5e0d5dcaeff8f06a4698
+  - url: https://github.com/google/{{ name }}/archive/v{{ version }}.tar.gz
+    sha256: 6395a00a97ff30af878ee8d7fd5ad0ab1c7844f7219182c6d71acbee1b5f3026
     patches:
-      - patches/0000-s390x_cast.patch
-      - patches/0001-3.13_support.patch
-      - patches/0002-add-pybind11_abseil-as-dependency.patch
-      - patches/0003-use-better-patches-for-vendored-pybind11_abseil.patch
-      - patches/0004-use-better-patches-for-vendored-pybind11_protobuf.patch
+      - patches/fix-dll-injection.patch  # [win]
 
 # The meta package
 build:
   number: 0
-  # coin-or-* rely on openblas not available on Windows
-  skip: true  # [win]
 
 requirements:
   build:
-    - patch  # [not win]
     # git used for vendored pybind11_protobuf and pybind11_abseil
-    - git    # [not win]
+    - git
   host:
     - python
 
 outputs:
   # The core package
   - name: libortools
-    script: build-cpp.sh
+    script: build-cpp.sh   # [not win]
+    script: build-cpp.bat  # [win]
     build:
       run_exports:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
       ignore_run_exports_from:
         - python
-      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-        - '$RPATH/ld64.so.1'  # [s390x]
-        # Conda build failing to identify this shared library.
-        # A test has been added instead for osx-64
-        - '*/libortools.9.dylib'  # [osx and x86_64]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
-        - cmake {{ cmake }}
-        - ninja
+        - cmake
+        - ninja-base
         - pkg-config
-        - patch  # [not win]
       host:
         - eigen {{ eigen }}
         - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
         - re2 {{ re2 }}
-        - zlib
+        - zlib {{ zlib }}
+        - bzip2 {{ bzip2 }}
         # coin or deps
-        - coin-or-utils 2.11.6
-        - coin-or-osi 0.108.7
-        - coin-or-clp 1.17.7
-        - coin-or-cgl 0.60.5
-        - coin-or-cbc 2.10.7
+        - coin-or-utils
+        - coin-or-osi
+        - coin-or-clp
+        - coin-or-cgl
+        - coin-or-cbc
+        # Needed for coin-or-*
+        - mkl-devel {{ mkl }}  # [win]
         # Source: https://github.com/google/or-tools/blob/stable/cmake/dependencies/CMakeLists.txt
         # fake python dependency to avoid conda-smithy collapsing the builds per arch;
         # we can remove this once we manage to base the python bindings on libortools
@@ -78,20 +63,20 @@ outputs:
         - ortools-cpp ={{ version }}
     test:
       commands:
-        - test -f $PREFIX/lib/libortools${SHLIB_EXT}
-        - test -f $PREFIX/lib/cmake/ortools/ortoolsTargets.cmake
-        - test -f $PREFIX/lib/cmake/ortools/ortoolsConfig.cmake
-        - test -f $PREFIX/include/ortools_export.h
-        - test -f $PREFIX/include/ortools/algorithms/dense_doubly_linked_list.h
+        - test -f ${PREFIX}/lib/libortools${SHLIB_EXT}                                     # [unix]
+        - test -f ${PREFIX}/lib/cmake/ortools/ortoolsTargets.cmake                         # [unix]
+        - test -f ${PREFIX}/lib/cmake/ortools/ortoolsConfig.cmake                          # [unix]
+        - test -f ${PREFIX}/include/ortools_export.h                                       # [unix]
+        - test -f ${PREFIX}/include/ortools/algorithms/dense_doubly_linked_list.h          # [unix]
+        - if not exist %LIBRARY_LIB%/ortools.lib exit 1                                    # [win]
+        - if not exist %LIBRARY_LIB%/cmake/ortools/ortoolsTargets.cmake exit 1             # [win]
+        - if not exist %LIBRARY_LIB%/cmake/ortools/ortoolsConfig.cmake exit 1              # [win]
+        - if not exist %LIBRARY_INC%/ortools_export.h exit 1                               # [win]
+        - if not exist %LIBRARY_INC%/ortools/algorithms/dense_doubly_linked_list.h exit 1  # [win]
 
   # for compatibility with previous output "ortools-cpp"
   - name: ortools-cpp
     build:
-      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-        - '$RPATH/ld64.so.1'  # [s390x]
-        # Conda build failing to identify this shared library.
-        # A test has been added instead for osx-64
-        - '*/libortools.9.dylib'  # [osx and x86_64]
       run_exports:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
     requirements:
@@ -103,83 +88,87 @@ outputs:
       commands:
         # just make sure that everything worked,
         # the rest are already tested in libortools
-        - test -f $PREFIX/lib/libortools${SHLIB_EXT}
+        - test -f ${PREFIX}/lib/libortools${SHLIB_EXT}   # [unix]
+        - if not exist %LIBRARY_LIB%/ortools.lib exit 1  # [win]
 
   # The python package.
   - name: ortools-python
-    script: build-python.sh
-    build:
-      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-        - '$RPATH/ld64.so.1'  # [s390x]
-        # Conda build failing to identify this shared library.
-        # A test has been added instead for osx-64
-        - '*/libortools.9.dylib'  # [osx and x86_64]
-      # ignore_run_exports:
-      #   - coin-or-osi
-      #   - coin-or-cgl
+    script: build-python.sh   # [not win]
+    script: build-python.bat  # [win]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
-        - cmake {{ cmake }}
-        - ninja
-        - mypy-protobuf {{ mypy_protobuf }}
-        - mypy {{ mypy }}
+        - cmake
+        - ninja-base
+        - mypy-protobuf
+        - mypy
         - pkg-config
         - swig >=4.0
-        - patch  # [not win]
         - python
-        - git  # [not win]
+        - git
       host:
-        - python
         - pip
+        - python
         - wheel
         - setuptools
-        - mypy-protobuf {{ mypy_protobuf }}
-        - mypy {{ mypy }}
+        - mypy-protobuf
+        - mypy
         # C/C++ deps
         - eigen {{ eigen }}
         - libabseil {{ libabseil }}
         - libprotobuf {{ libprotobuf }}
         - libprotobuf-python-headers {{ libprotobuf }}
-        - pybind11 {{ pybind11 }}
+        - pybind11
         - re2 {{ re2 }}
-        - zlib
+        - zlib {{ zlib }}
+        - bzip2 {{ bzip2 }}
         # coin or deps
-        - coin-or-utils 2.11.6
-        - coin-or-osi 0.108.7
-        - coin-or-clp 1.17.7
-        - coin-or-cgl 0.60.5
-        - coin-or-cbc 2.10.7
+        - coin-or-utils
+        - coin-or-osi
+        - coin-or-clp
+        - coin-or-cgl
+        - coin-or-cbc
+        # Needed for coin-or-* stack
+        - mkl-devel {{ mkl }}  # [win]
         # Source:
         # https://github.com/google/or-tools/blob/v9.9/ortools/python/setup.py.in#L44
-        - absl-py 2.1.0
-        - numpy 2.0.1
-        - pandas 2.2.3
-        - protobuf {{ libprotobuf }}
-        - immutabledict 4.2.0
+        - absl-py
+        - numpy {{ numpy }}
+        - pandas
+        - protobuf
+        - immutabledict
       run:
         - python
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
+        - numpy
         - absl-py >=2.0.0
-        - {{ pin_compatible('numpy') }}
         - pandas >=2.0.0
         - protobuf {{ libprotobuf }}
+        - typing-extensions >=4.12
         - immutabledict >=3.0.0
     test:
+      source_files:
+        - cmake/samples/python/sample.py
+        - ortools/sat/samples/assignment_sat.py
       requires:
         - pip
         - scipy >=1.10
       imports:
         - ortools
-        - ortools.linear_solver.pywraplp
+        - ortools.algorithms.python.knapsack_solver
+        - ortools.linear_solver._pywraplp
+        - ortools.linear_solver.python.model_builder_helper
+        - ortools.sat.python.cp_model_helper
+        - ortools.constraint_solver._pywrapcp
+        - ortools.graph.python.max_flow
+        - ortools.graph.python.min_cost_flow
+        - ortools.math_opt.core.python.solver
+        - ortools.util.python.sorted_interval_list
       commands:
         - pip check
-        - ${PYTHON} cmake/samples/python/sample.py
-        - ${PYTHON} ortools/sat/samples/assignment_sat.py
-        - test -f ${SP_DIR}/ortools/.libs/libortools.9.dylib  # [osx and x86_64]
-      source_files:
-        - cmake/samples/python/sample.py
-        - ortools/sat/samples/assignment_sat.py
+        - python cmake/samples/python/sample.py
+        - python ortools/sat/samples/assignment_sat.py
 
 about:
   home: https://developers.google.com/optimization
