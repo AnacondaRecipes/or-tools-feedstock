@@ -3,3 +3,7 @@ upstream_sources:
   - github:
       identifier: google/or-tools
       use_max_tag: true
+    packages:
+      - libortools
+      - ortools-cpp
+      - ortools-python
