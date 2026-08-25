@@ -13,7 +13,7 @@ source:
 
 # The meta package
 build:
-  number: 0
+  number: 1
 
 requirements:
   build:
@@ -41,8 +41,8 @@ outputs:
         - pkg-config
       host:
         - eigen {{ eigen }}
-        - libabseil {{ libabseil }}
-        - libprotobuf {{ libprotobuf }}
+        - libabseil 20260526.0
+        - libprotobuf 7.35.1
         - re2 {{ re2 }}
         - zlib {{ zlib }}
         - bzip2 {{ bzip2 }}
@@ -116,9 +116,9 @@ outputs:
         - mypy
         # C/C++ deps
         - eigen {{ eigen }}
-        - libabseil {{ libabseil }}
-        - libprotobuf {{ libprotobuf }}
-        - libprotobuf-python-headers {{ libprotobuf }}
+        - libabseil 20260526.0
+        - libprotobuf 7.35.1
+        - libprotobuf-python-headers 7.35.1
         - pybind11
         - re2 {{ re2 }}
         - zlib {{ zlib }}
@@ -136,7 +136,7 @@ outputs:
         - absl-py
         - numpy {{ numpy }}
         - pandas
-        - protobuf
+        - protobuf 7.35.1
         - immutabledict
       run:
         - python
@@ -144,7 +144,7 @@ outputs:
         - numpy
         - absl-py >=2.0.0
         - pandas >=2.0.0
-        - protobuf {{ libprotobuf }}
+        - protobuf 7.35.1
         - typing-extensions >=4.12
         - immutabledict >=3.0.0
     test:
