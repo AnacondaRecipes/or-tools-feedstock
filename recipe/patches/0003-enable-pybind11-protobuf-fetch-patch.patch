@@ -1,0 +1,21 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Steve Crass <scrass@anaconda.com>
+Date: Wed, 26 Aug 2026 20:10:00 -0600
+Subject: [PATCH 3/4] enable pybind11_protobuf fetch-time patch for protobuf 7
+
+Uncomment PATCH_COMMAND so vendored pybind11_protobuf gets StringViewArg
+overrides compatible with libprotobuf 7.35.1 DescriptorDatabase API.
+---
+--- a/cmake/dependencies/CMakeLists.txt
++++ b/cmake/dependencies/CMakeLists.txt
+@@ -277,8 +277,8 @@
+       GIT_TAG "f02a2b7653bc50eb5119d125842a3870db95d251" # 2025/02/10
+       #GIT_SHALLOW TRUE
+       #UPDATE_COMMAND git reset --hard
+-      #PATCH_COMMAND git apply --ignore-whitespace
+-      #"${CMAKE_CURRENT_LIST_DIR}/../../patches/pybind11_protobuf.patch"
++      PATCH_COMMAND git apply --ignore-whitespace
++        "${CMAKE_CURRENT_LIST_DIR}/../../patches/0001-pybind11-protobuf-stringview.patch"
+       SYSTEM
+     )
+     FetchContent_MakeAvailable(pybind11_protobuf)
