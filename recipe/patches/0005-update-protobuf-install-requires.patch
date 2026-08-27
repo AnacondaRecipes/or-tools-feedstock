@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Steve Crass <scrass@anaconda.com>
+Date: Thu, 27 Aug 2026 10:50:00 -0600
+Subject: [PATCH 5/5] update protobuf install_requires for protobuf 7 stack
+
+pip check reads wheel metadata from setup.py.in; protobuf 6.x bound fails
+against the Stage 005 protobuf 7.35.1 host/run pins.
+---
+ ortools/python/setup.py.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ortools/python/setup.py.in b/ortools/python/setup.py.in
+index 1111111..2222222 100644
+--- a/ortools/python/setup.py.in
++++ b/ortools/python/setup.py.in
+@@ -46,7 +46,7 @@ setup(
+         'absl-py >= 2.0.0',
+         'numpy >= 2.0.2',
+         'pandas >= 2.0.0',
+-        'protobuf >= 6.33.1,<6.34',
++        'protobuf >= 7.35.1,<8',
+         'typing-extensions >= 4.12',
+         'immutabledict >= 3.0.0',
+     ],

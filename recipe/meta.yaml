@@ -9,11 +9,14 @@ source:
   - url: https://github.com/google/{{ name }}/archive/v{{ version }}.tar.gz
     sha256: 6395a00a97ff30af878ee8d7fd5ad0ab1c7844f7219182c6d71acbee1b5f3026
     patches:
-      - patches/fix-dll-injection.patch  # [win]
+      - patches/0001-guard-absl-source-location.patch
+      - patches/0002-fix-dll-injection.patch  # [win]
+      - patches/0003-enable-pybind11-protobuf-fetch-patch.patch
+      - patches/0005-update-protobuf-install-requires.patch
 
 # The meta package
 build:
-  number: 0
+  number: 1
 
 requirements:
   build:
@@ -41,8 +44,8 @@ outputs:
         - pkg-config
       host:
         - eigen {{ eigen }}
-        - libabseil {{ libabseil }}
-        - libprotobuf {{ libprotobuf }}
+        - libabseil 20260526.0
+        - libprotobuf 7.35.1
         - re2 {{ re2 }}
         - zlib {{ zlib }}
         - bzip2 {{ bzip2 }}
@@ -116,10 +119,10 @@ outputs:
         - mypy
         # C/C++ deps
         - eigen {{ eigen }}
-        - libabseil {{ libabseil }}
-        - libprotobuf {{ libprotobuf }}
-        - libprotobuf-python-headers {{ libprotobuf }}
-        - pybind11
+        - libabseil 20260526.0
+        - libprotobuf 7.35.1
+        - libprotobuf-python-headers 7.35.1
+        - pybind11 2.13.6
         - re2 {{ re2 }}
         - zlib {{ zlib }}
         - bzip2 {{ bzip2 }}
@@ -136,7 +139,7 @@ outputs:
         - absl-py
         - numpy {{ numpy }}
         - pandas
-        - protobuf
+        - protobuf 7.35.1
         - immutabledict
       run:
         - python
@@ -144,7 +147,7 @@ outputs:
         - numpy
         - absl-py >=2.0.0
         - pandas >=2.0.0
-        - protobuf {{ libprotobuf }}
+        - protobuf 7.35.1
         - typing-extensions >=4.12
         - immutabledict >=3.0.0
     test:
