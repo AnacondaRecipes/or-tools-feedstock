@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Steve Crass <scrass@anaconda.com>
+Date: Wed, 26 Aug 2026 19:25:00 -0600
+Subject: [PATCH] guard vendored absl::SourceLocation when Abseil provides it
+
+Backport of https://github.com/google/or-tools/pull/5256
+
+Abseil LTS 20260526.0 provides absl/types/source_location.h. or-tools 9.15
+also defines absl::SourceLocation unconditionally in ortools/base/source_location.h,
+causing ambiguous reference errors when building against libabseil 20260526.0.
+---
+ ortools/base/source_location.h | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/ortools/base/source_location.h b/ortools/base/source_location.h
+index d6c6c237bcb..74ac2d72660 100644
+--- a/ortools/base/source_location.h
++++ b/ortools/base/source_location.h
+@@ -32,6 +32,11 @@
+ 
+ #include "absl/base/config.h"
+ 
++// Abseil >= LTS 20260526 provides absl::SourceLocation; use it when available.
++#if defined(__has_include) && __has_include("absl/types/source_location.h")
++#include "absl/types/source_location.h"
++#else
++
+ namespace absl {
+ 
+ // Class representing a specific location in the source code of a program.
+@@ -117,9 +122,15 @@ class SourceLocation {
+ 
+ }  // namespace absl
+ 
++#endif  // __has_include("absl/types/source_location.h")
++
+ // If a function takes an `absl::SourceLocation` parameter, pass this as the
+-// argument.
++// argument. Abseil's own SourceLocation has no DoNotInvokeDirectly().
++#if defined(__has_include) && __has_include("absl/types/source_location.h")
++#define ABSL_LOC ::absl::SourceLocation::current()
++#else
+ #define ABSL_LOC ::absl::SourceLocation::DoNotInvokeDirectly(__LINE__, __FILE__)
++#endif
+ 
+ // ABSL_LOC_CURRENT_DEFAULT_ARG
+ //
