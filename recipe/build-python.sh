@@ -3,7 +3,7 @@ set -ex
 
 # Nested patch for vendored pybind11_protobuf (cmake FetchContent PATCH_COMMAND).
 mkdir -p patches
-cp "${RECIPE_DIR}/patches/0001-pybind11-protobuf-stringview.patch" patches/
+cp "${RECIPE_DIR}/patches/0004-pybind11-protobuf-stringview.patch" patches/
 
 rm -rf build
 mkdir build
