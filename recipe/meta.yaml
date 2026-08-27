@@ -121,7 +121,8 @@ outputs:
         - libabseil 20260526.0
         - libprotobuf 7.35.1
         - libprotobuf-python-headers 7.35.1
-        - pybind11
+        - pybind11 2.13.6
+        - pybind11-abi 5
         - re2 {{ re2 }}
         - zlib {{ zlib }}
         - bzip2 {{ bzip2 }}
