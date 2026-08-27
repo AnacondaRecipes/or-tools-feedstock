@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Steve Crass <scrass@anaconda.com>
-Date: Wed, 26 Aug 2026 20:10:00 -0600
+Date: Thu, 27 Aug 2026 08:40:00 -0600
 Subject: [PATCH 4/4] add pybind11_protobuf StringViewArg patch for protobuf 7
 
 Backport of google/or-tools main patches/pybind11_protobuf.patch (StringViewArg
@@ -8,7 +8,7 @@ hunk only). Applied to vendored pybind11_protobuf at cmake fetch time.
 ---
 diff --git a/patches/0001-pybind11-protobuf-stringview.patch b/patches/0001-pybind11-protobuf-stringview.patch
 new file mode 100644
-index 0000000..1111111
+index 0000000..da81a88
 --- /dev/null
 +++ b/patches/0001-pybind11-protobuf-stringview.patch
 @@ -0,0 +1,31 @@
