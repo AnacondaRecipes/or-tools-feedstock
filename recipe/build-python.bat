@@ -3,6 +3,10 @@ setlocal enabledelayedexpansion
 
 set PKG_CONFIG_PATH=%PREFIX%\Library\lib\pkgconfig;%PKG_CONFIG_PATH%
 
+REM Nested patch for vendored pybind11_protobuf (cmake FetchContent PATCH_COMMAND).
+if not exist patches mkdir patches
+copy /Y "%RECIPE_DIR%\patches\0004-pybind11-protobuf-stringview.patch" patches\
+
 rmdir /s /q build
 mkdir build
 
@@ -20,6 +24,7 @@ cmake -B build -G Ninja -S . ^
     -DBUILD_PYTHON=ON ^
     -DFETCH_PYTHON_DEPS=OFF ^
     -DBUILD_TESTING=OFF ^
+    -DBUILD_pybind11=OFF ^
     -DBUILD_pybind11_abseil=ON ^
     -DBUILD_pybind11_protobuf=ON ^
     -DPython3_EXECUTABLE=%PYTHON% ^
