@@ -11,6 +11,7 @@ cmake -G Ninja \
       -DCMAKE_INSTALL_LIBDIR=lib \
       -DCMAKE_INSTALL_PREFIX=$PREFIX \
       -DBUILD_SHARED_LIBS=ON \
+      -DBUILD_TESTING=OFF \
       -DBUILD_DEPS=OFF \
       -DBUILD_Eigen3=OFF \
       -DBUILD_absl=OFF \

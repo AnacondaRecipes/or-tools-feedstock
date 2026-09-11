@@ -33,9 +33,11 @@ source:
 
 # The meta package
 build:
-  number: 0
+  number: 1
   # coin-or-* rely on openblas not available on Windows
-  skip: true  # [win]
+  # Match the Python matrix used for the original OR-Tools 9.9 build;
+  # newer Python versions were not available for this release.
+  skip: true  # [win or py<310 or py>312]
 
 requirements:
   build:
@@ -49,7 +51,7 @@ requirements:
   host:
     - eigen 3.4.0
     - libabseil 20240116.2*
-    - libprotobuf {{ libprotobuf }}
+    - libprotobuf 4.25.3
     - re2 >=2024-02-01
     - zlib
     # coin or deps
@@ -86,7 +88,7 @@ outputs:
       host:
         - eigen 3.4.0
         - libabseil 20240116.2*
-        - libprotobuf {{ libprotobuf }}
+        - libprotobuf 4.25.3
         - re2 >=2024-02-01
         - zlib
         # coin or deps
@@ -149,7 +151,7 @@ outputs:
         - git  # [not win]
         - ninja
         - python
-        - mypy-protobuf
+        - mypy-protobuf >=3.3.0
         - mypy
         - pkg-config
         - swig >=4.0
@@ -161,15 +163,15 @@ outputs:
         - numpy
         - mypy-protobuf 3.3.0
         - mypy
-        - protobuf
+        - protobuf 4.25.3
         - scipy >=1.10
         - wheel
         - setuptools
         # C/C++ deps
         - eigen 3.4.0
         - libabseil 20240116.2*
-        - libprotobuf {{ libprotobuf }}
-        - libprotobuf-python-headers {{ libprotobuf }}
+        - libprotobuf 4.25.3
+        - libprotobuf-python-headers 4.25.3
         - pybind11 >=2.11.1
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
         - pandas >=2.0.0
@@ -192,7 +194,7 @@ outputs:
         - immutabledict >=3.0.0
         - mypy-protobuf
         - {{ pin_compatible('numpy') }}
-        - protobuf {{ libprotobuf }}
+        - protobuf 4.25.3
         - scipy >=1.10
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
         - pandas >=2.0.0
@@ -232,8 +234,8 @@ outputs:
       host:
         - python
         - libabseil 20240116.2*
-        - libprotobuf {{ libprotobuf }}
-        - libprotobuf-python-headers {{ libprotobuf }}
+        - libprotobuf 4.25.3
+        - libprotobuf-python-headers 4.25.3
         - pybind11 >=2.11.1
       run:
         - python
@@ -255,7 +257,7 @@ outputs:
       host:
         - python
         - libabseil 20240116.2*
-        - libprotobuf {{ libprotobuf }}
+        - libprotobuf 4.25.3
         - pybind11 >=2.11.1
       run:
         - python
