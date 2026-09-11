@@ -10,7 +10,6 @@ source:
     patches:
       - patches/0001-3.13_support.patch
       - patches/0002-add-pybind11_abseil-as-dependency.patch
-      - patches/0003-s390x_cast.patch
   - url: https://github.com/pybind/pybind11_protobuf/archive/3b11990a99dea5101799e61d98a82c4737d240cc.tar.gz
     sha256: 8747cbedbc9408b197858fa327b186b0340770721b9848471c040821eb10eae6
     folder: pybind11_protobuf
@@ -34,33 +33,33 @@ source:
 # The meta package
 build:
   number: 1
-  # coin-or-* rely on openblas not available on Windows
   # Match the Python matrix used for the original OR-Tools 9.9 build;
   # newer Python versions were not available for this release.
-  skip: true  # [win or py<310 or py>312]
+  skip: true  # [py<37 or py>312]
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - git  # [not win]
     - cmake >=3.18
-    - ninja
+    - ninja-base
     - pkg-config
-    - patch  # [not win]
+    - python
   host:
+    - python
     - eigen 3.4.0
     - libabseil 20240116.2*
     - libprotobuf 4.25.3
     - re2 >=2024-02-01
-    - zlib
+    - zlib {{ zlib }}
     # coin or deps
     - coin-or-utils 2.11.6
     - coin-or-osi 0.108.7
     - coin-or-clp 1.17.7
     - coin-or-cgl 0.60.5
     - coin-or-cbc 2.10.7
-    - python
 
 outputs:
   # The core package
@@ -71,26 +70,22 @@ outputs:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
       ignore_run_exports_from:
         - python
-      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-        - '$RPATH/ld64.so.1'  # [s390x]
-        # Conda build failing to identify this shared library.
-        # A test has been added instead for osx-64
-        - '*/libortools.9.dylib'  # [osx and x86_64]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - git  # [not win]
         - cmake >=3.18
-        - ninja
+        - ninja-base
         - pkg-config
-        - patch  # [not win]
       host:
+        - python
         - eigen 3.4.0
         - libabseil 20240116.2*
-        - libprotobuf 4.25.3
+        - libprotobuf ==4.25.3
         - re2 >=2024-02-01
-        - zlib
+        - zlib {{ zlib }}
         # coin or deps
         - coin-or-utils 2.11.6
         - coin-or-osi 0.108.7
@@ -100,7 +95,6 @@ outputs:
         # Source: https://github.com/google/or-tools/blob/stable/cmake/dependencies/CMakeLists.txt
         # fake python dependency to avoid conda-smithy collapsing the builds per arch;
         # we can remove this once we manage to base the python bindings on libortools
-        - python
       run_constrained:
         # make sure we don't co-install with old version of previous package name
         - ortools-cpp ={{ version }}
@@ -116,11 +110,6 @@ outputs:
   # for compatibility with previous output "ortools-cpp"
   - name: ortools-cpp
     build:
-      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-        - '$RPATH/ld64.so.1'  # [s390x]
-        # Conda build failing to identify this shared library.
-        # A test has been added instead for osx-64
-        - '*/libortools.9.dylib'  # [osx and x86_64]
       run_exports:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
     requirements:
@@ -136,41 +125,34 @@ outputs:
   # The python package.
   - name: ortools-python
     script: build-python.sh
-    build:
-      missing_dso_whitelist:  # [s390x or (osx and x86_64)]
-        - '$RPATH/ld64.so.1'  # [s390x]
-        # Conda build failing to identify this shared library.
-        # A test has been added instead for osx-64
-        - '*/libortools.9.dylib'  # [osx and x86_64]
-
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.18
         - git  # [not win]
-        - ninja
+        - ninja-base
         - python
         - mypy-protobuf >=3.3.0
         - mypy
         - pkg-config
         - swig >=4.0
-        - patch  # [not win]
       host:
         - python
         - pip
         - absl-py >=2.0.0
-        - numpy
+        - numpy {{ numpy }}
         - mypy-protobuf 3.3.0
         - mypy
-        - protobuf 4.25.3
+        - protobuf ==4.25.3
         - scipy >=1.10
         - wheel
         - setuptools
         # C/C++ deps
         - eigen 3.4.0
         - libabseil 20240116.2*
-        - libprotobuf 4.25.3
+        - libprotobuf ==4.25.3
         - libprotobuf-python-headers 4.25.3
         - pybind11 >=2.11.1
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
@@ -181,7 +163,7 @@ outputs:
         # - pybind11_abseil 52f2739
         - {{ pin_subpackage('pybind11_abseil', exact=True) }}
         - re2 >=2024-02-01
-        - zlib
+        - zlib {{ zlib }}
         # coin or deps
         - coin-or-utils 2.11.6
         - coin-or-osi 0.108.7
@@ -223,18 +205,17 @@ outputs:
     script: build-pybind11_protobuf.sh
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - git  # [not win]
         - cmake >=3.18
-        - ninja
+        - ninja-base
         - pkg-config
-        - patch  # [not win]
-        - python
       host:
         - python
         - libabseil 20240116.2*
-        - libprotobuf 4.25.3
+        - libprotobuf ==4.25.3
         - libprotobuf-python-headers 4.25.3
         - pybind11 >=2.11.1
       run:
@@ -246,18 +227,18 @@ outputs:
     script: build-pybind11_abseil.sh
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - git  # [not win]
         - cmake >=3.18
-        - ninja
+        - ninja-base
         - pkg-config
-        - patch  # [not win]
         - python
       host:
         - python
         - libabseil 20240116.2*
-        - libprotobuf 4.25.3
+        - libprotobuf ==4.25.3
         - pybind11 >=2.11.1
       run:
         - python
