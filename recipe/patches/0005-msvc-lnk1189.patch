@@ -1,0 +1,12 @@
+diff --git a/cmake/cpp.cmake b/cmake/cpp.cmake
+index 705986209a..92ce5b36d8 100644
+--- a/cmake/cpp.cmake
++++ b/cmake/cpp.cmake
+@@ -81,6 +81,7 @@ if(MSVC)
+     "/D_CRT_SECURE_NO_WARNINGS"
+     "/D_CRT_SECURE_NO_DEPRECATE"
+     "/MP" # Build with multiple processes
++    "/Zc:inline" # Remove unreferenced COMDAT
+     "/Zc:preprocessor" # Enable preprocessor conformance mode
+     "/DNDEBUG"
+     "/fp:precise"
