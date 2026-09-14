@@ -35,7 +35,8 @@ cmake -G Ninja \
       -DCMAKE_INSTALL_PYDIR=$SP_DIR \
       -DPython_EXECUTABLE=$PYTHON \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
-      -DBUILD_TESTS=OFF
+      -DBUILD_TESTS=OFF \
+      -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS} -lCoinUtils"
 
 cmake --build build -j"${CPU_COUNT}"
 
