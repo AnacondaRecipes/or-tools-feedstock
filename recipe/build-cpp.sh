@@ -21,6 +21,7 @@ cmake -G Ninja \
       -S. \
       -Bbuild \
       -DBUILD_SAMPLES=OFF \
-      -DBUILD_EXAMPLES=OFF
+      -DBUILD_EXAMPLES=OFF \
+      -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS} -lCoinUtils"
 
 cmake --build build --target install -j${CPU_COUNT}

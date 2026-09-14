@@ -24,7 +24,6 @@ source:
 # The meta package
 build:
   number: 1
-  # coin-or-* rely on openblas not available on Windows
   skip: true  # [py<37 or py>312]
 
 requirements:
