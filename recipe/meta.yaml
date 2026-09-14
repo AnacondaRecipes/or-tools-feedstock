@@ -37,7 +37,8 @@ requirements:
 outputs:
   # The core package
   - name: libortools
-    script: build-cpp.sh
+    script: build-cpp.sh # [not win]
+    script: build-cpp.bat # [win]
     build:
       run_exports:
         - {{ pin_subpackage('libortools', max_pin='x.x') }}
