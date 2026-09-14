@@ -68,6 +68,7 @@ outputs:
         # fake python dependency to avoid conda-smithy collapsing the builds per arch;
         # we can remove this once we manage to base the python bindings on libortools
         - python
+        - mkl-devel {{ mkl }} # [win]
       run_constrained:
         # make sure we don't co-install with old version of previous package name
         - ortools-cpp ={{ version }}
@@ -111,7 +112,7 @@ outputs:
         - pkg-config
         - swig >=4.0
         - python
-        - git  # [not win]
+        - git
         - gtest 1.14.0
       host:
         - python
@@ -141,6 +142,7 @@ outputs:
         - pandas 2.2.3
         - protobuf ==4.25.3
         - immutabledict 4.2.0
+        - mkl-devel {{ mkl }} # [win]
       run:
         - python
         # Source: https://github.com/google/or-tools/blob/stable/ortools/python/setup.py.in#L44
