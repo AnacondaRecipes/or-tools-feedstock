@@ -31,3 +31,16 @@ index 2099134b44..37f1475345 100644
    COMMAND ${CMAKE_COMMAND} -E touch ${PROJECT_BINARY_DIR}/python/ortools_timestamp
    MAIN_DEPENDENCY
      ortools/python/setup.py.in
+diff --git a/ortools/python/setup.py.in b/ortools/python/setup.py.in
+index ff636222ec..ce3070c9bb 100644
+--- a/ortools/python/setup.py.in
++++ b/ortools/python/setup.py.in
+@@ -50,7 +50,7 @@ setup(
+         'immutabledict >= 3.0.0',
+     ],
+     package_data={
+-        '@PYTHON_PROJECT@':[$<$<STREQUAL:$<TARGET_PROPERTY:@PROJECT_NAME@,TYPE>,SHARED_LIBRARY>:'.libs/*','../$<TARGET_SONAME_FILE_NAME:@PROJECT_NAME@>'>],
++        '@PYTHON_PROJECT@':['.libs/*'],
+         '@PYTHON_PROJECT@.init.python':[
+             '$<TARGET_FILE_NAME:init_pybind11>',
+             '*.pyi'
