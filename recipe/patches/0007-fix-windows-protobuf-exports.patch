@@ -1,0 +1,174 @@
+diff --git a/cmake/cpp.cmake b/cmake/cpp.cmake
+index 705986209a..d855a643c5 100644
+--- a/cmake/cpp.cmake
++++ b/cmake/cpp.cmake
+@@ -22,8 +22,11 @@ set(OR_TOOLS_COMPILE_DEFINITIONS)
+ set(OR_TOOLS_COMPILE_OPTIONS)
+ set(OR_TOOLS_LINK_OPTIONS)
+ 
+-if(BUILD_SHARED_LIBS)
+-  list(APPEND OR_TOOLS_COMPILE_DEFINITIONS "OR_TOOLS_AS_DYNAMIC_LIB")
++if(MSVC AND BUILD_SHARED_LIBS)
++  list(APPEND OR_TOOLS_COMPILE_DEFINITIONS "OR_BUILD_DLL")
++  list(APPEND OR_TOOLS_COMPILE_DEFINITIONS "OR_PROTO_DLL=__declspec(dllimport)")
++else()
++  list(APPEND OR_TOOLS_COMPILE_DEFINITIONS "OR_PROTO_DLL=")
+ endif()
+ # Optional built-in components
+ if(BUILD_LP_PARSER)
+@@ -155,57 +158,104 @@ function(generate_proto_library)
+     ${ARGN}
+   )
+ 
+- if(NOT PROTOC_PRG)
+-   message(FATAL_ERROR "protoc binary not found.")
+- endif()
+-
+- # Generate proto C++ files.
+- set(PROTO_HDRS)
+- set(PROTO_SRCS)
+- foreach(PROTO_FILE IN LISTS PROTO_FILES)
+-   #message(STATUS "protoc proto(cc): ${PROTO_FILE}")
+-   get_filename_component(PROTO_DIR ${PROTO_FILE} DIRECTORY)
+-   get_filename_component(PROTO_NAME_WE ${PROTO_FILE} NAME_WE)
+-   set(PROTO_HDR ${PROJECT_BINARY_DIR}/${PROTO_DIR}/${PROTO_NAME_WE}.pb.h)
+-   set(PROTO_SRC ${PROJECT_BINARY_DIR}/${PROTO_DIR}/${PROTO_NAME_WE}.pb.cc)
+-   #message(STATUS "protoc hdr: ${PROTO_HDR}")
+-   #message(STATUS "protoc src: ${PROTO_SRC}")
+-   add_custom_command(
+-     OUTPUT ${PROTO_SRC} ${PROTO_HDR}
+-     COMMAND ${PROTOC_PRG}
+-     "--proto_path=${PROJECT_SOURCE_DIR}"
+-     ${PROTO_DIRS}
+-     "--cpp_out=${PROJECT_BINARY_DIR}"
+-     ${PROTO_FILE}
+-     DEPENDS ${PROTO_FILE} ${PROTOC_PRG}
+-     COMMENT "Generate C++ protocol buffer for ${PROTO_FILE}"
+-     VERBATIM)
+-   list(APPEND PROTO_HDRS ${PROTO_HDR})
+-   list(APPEND PROTO_SRCS ${PROTO_SRC})
+- endforeach()
+-
+- # Create library
+- add_library(${PROTO_NAME}_proto OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
+- target_compile_features(${PROTO_NAME}_proto PUBLIC $<IF:$<CXX_COMPILER_ID:MSVC>,cxx_std_20,cxx_std_17>)
+- if(MSVC)
+-   set_target_properties(${PROTO_NAME}_proto PROPERTIES CXX_STANDARD 20)
+- else()
+-   set_target_properties(${PROTO_NAME}_proto PROPERTIES CXX_STANDARD 17)
+- endif()
+- set_target_properties(${PROTO_NAME}_proto PROPERTIES
+-   CXX_STANDARD_REQUIRED ON
+-   CXX_EXTENSIONS OFF
+-   POSITION_INDEPENDENT_CODE ON)
+- target_include_directories(${PROTO_NAME}_proto PRIVATE
+-   ${PROJECT_SOURCE_DIR}
+-   ${PROJECT_BINARY_DIR}
+-   #$<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
+- )
+- target_compile_definitions(${PROTO_NAME}_proto PUBLIC ${OR_TOOLS_COMPILE_DEFINITIONS})
+- target_compile_options(${PROTO_NAME}_proto PUBLIC ${OR_TOOLS_COMPILE_OPTIONS})
+- target_link_libraries(${PROTO_NAME}_proto PUBLIC protobuf::libprotobuf ${PROTO_LINK_LIBRARIES})
+- add_library(${PROJECT_NAMESPACE}::${PROTO_NAME}_proto ALIAS ${PROTO_NAME}_proto)
+- #message(FATAL_ERROR "Proto target alias: ${PROJECT_NAMESPACE}::${PROTO_NAME}_proto")
++  if(NOT PROTOC_PRG)
++    message(FATAL_ERROR "protoc binary not found.")
++  endif()
++
++  # Generate proto C++ files.
++  set(PROTO_HDRS)
++  set(PROTO_SRCS)
++  foreach(PROTO_FILE IN LISTS PROTO_FILES)
++    #message(STATUS "protoc proto(cc): ${PROTO_FILE}")
++    get_filename_component(PROTO_DIR ${PROTO_FILE} DIRECTORY)
++    get_filename_component(PROTO_NAME_WE ${PROTO_FILE} NAME_WE)
++    set(PROTO_HDR ${PROJECT_BINARY_DIR}/${PROTO_DIR}/${PROTO_NAME_WE}.pb.h)
++    set(PROTO_SRC ${PROJECT_BINARY_DIR}/${PROTO_DIR}/${PROTO_NAME_WE}.pb.cc)
++    #message(STATUS "protoc hdr: ${PROTO_HDR}")
++    #message(STATUS "protoc src: ${PROTO_SRC}")
++
++    add_custom_command(
++      OUTPUT ${PROTO_SRC} ${PROTO_HDR}
++      COMMAND ${PROTOC_PRG}
++      "--proto_path=${PROJECT_SOURCE_DIR}"
++      ${PROTO_DIRS}
++      "--cpp_out=dllexport_decl=OR_PROTO_DLL:${PROJECT_BINARY_DIR}"
++      ${PROTO_FILE}
++      DEPENDS ${PROTO_FILE} ${PROTOC_PRG}
++      COMMENT "Generate C++ protocol buffer for ${PROTO_FILE}"
++      VERBATIM)
++
++    list(APPEND PROTO_HDRS ${PROTO_HDR})
++    list(APPEND PROTO_SRCS ${PROTO_SRC})
++  endforeach()
++
++  # Create library
++  add_library(${PROTO_NAME}_proto OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
++
++  target_compile_features(
++    ${PROTO_NAME}_proto
++    PUBLIC
++    $<IF:$<CXX_COMPILER_ID:MSVC>,cxx_std_20,cxx_std_17>)
++
++  if(MSVC)
++    set_target_properties(${PROTO_NAME}_proto PROPERTIES CXX_STANDARD 20)
++  else()
++    set_target_properties(${PROTO_NAME}_proto PROPERTIES CXX_STANDARD 17)
++  endif()
++
++  set_target_properties(${PROTO_NAME}_proto PROPERTIES
++    CXX_STANDARD_REQUIRED ON
++    CXX_EXTENSIONS OFF
++    POSITION_INDEPENDENT_CODE ON)
++
++  target_include_directories(${PROTO_NAME}_proto PRIVATE
++    ${PROJECT_SOURCE_DIR}
++    ${PROJECT_BINARY_DIR}
++    #$<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
++  )
++
++  # OR_TOOLS_COMPILE_DEFINITIONS contains OR_PROTO_DLL=dllimport on Windows.
++  # Do not propagate it while compiling the protobuf sources themselves:
++  # they must export their generated symbols instead.
++  set(PROTO_COMPILE_DEFINITIONS ${OR_TOOLS_COMPILE_DEFINITIONS})
++  list(FILTER PROTO_COMPILE_DEFINITIONS EXCLUDE REGEX "^OR_PROTO_DLL=")
++
++  target_compile_definitions(
++    ${PROTO_NAME}_proto
++    PUBLIC ${PROTO_COMPILE_DEFINITIONS})
++
++  if(MSVC AND BUILD_SHARED_LIBS)
++    target_compile_definitions(
++      ${PROTO_NAME}_proto
++      PRIVATE "OR_PROTO_DLL=__declspec(dllexport)")
++    target_compile_definitions(
++      ${PROTO_NAME}_proto
++      INTERFACE "OR_PROTO_DLL=__declspec(dllimport)")
++  else()
++    target_compile_definitions(
++      ${PROTO_NAME}_proto
++      PUBLIC "OR_PROTO_DLL=")
++  endif()
++
++  target_compile_options(
++    ${PROTO_NAME}_proto
++    PUBLIC ${OR_TOOLS_COMPILE_OPTIONS})
++
++target_link_libraries(
++  ${PROTO_NAME}_proto
++  PUBLIC protobuf::libprotobuf)
++
++  if(PROTO_LINK_LIBRARIES)
++    add_dependencies(
++      ${PROTO_NAME}_proto
++      ortools_proto)
++  endif()
++
++  add_library(
++    ${PROJECT_NAMESPACE}::${PROTO_NAME}_proto
++    ALIAS ${PROTO_NAME}_proto)
++
++  #message(FATAL_ERROR "Proto target alias: ${PROJECT_NAMESPACE}::${PROTO_NAME}_proto")
+ endfunction()
+ 
+ # Generate Protobuf cpp sources

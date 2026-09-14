@@ -20,8 +20,9 @@ source:
       - patches/0002-add-pybind11_abseil-as-dependency.patch
       - patches/0003-use-better-patches-for-vendored-pybind11_abseil.patch
       - patches/0004-use-better-patches-for-vendored-pybind11_protobuf.patch
-      - patches/0005-msvc-lnk1189.patch # [win]
+      - patches/0005-fix-msvc-lnk1189.patch # [win]
       - patches/0006-fix-windows-target-file.patch # [win]
+      - patches/0007-fix-windows-protobuf-exports.patch # [win]
 
 # The meta package
 build:
