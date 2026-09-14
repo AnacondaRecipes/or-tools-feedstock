@@ -1,0 +1,33 @@
+diff --git a/cmake/python.cmake b/cmake/python.cmake
+index 2099134b44..37f1475345 100644
+--- a/cmake/python.cmake
++++ b/cmake/python.cmake
+@@ -423,15 +423,24 @@ configure_file(
+   ${PROJECT_BINARY_DIR}/python/LICENSE
+   COPYONLY)
+ 
++set(is_windows "$<PLATFORM_ID:Windows>")
++set(is_not_windows "$<NOT:$<PLATFORM_ID:Windows>>")
++
++set(is_ortools_shared "$<STREQUAL:$<TARGET_PROPERTY:ortools,TYPE>,SHARED_LIBRARY>")
++set(need_unix_ortools_lib "$<AND:${is_not_windows},${is_ortools_shared}>")
++set(need_windows_ortools_lib "$<AND:${is_windows},${is_ortools_shared}>")
++
+ add_custom_command(
+   OUTPUT python/ortools_timestamp
+   COMMAND ${CMAKE_COMMAND} -E remove -f ortools_timestamp
+   COMMAND ${CMAKE_COMMAND} -E make_directory ${PYTHON_PROJECT}/.libs
+-  # Don't need to copy static lib on Windows.
++
+   COMMAND ${CMAKE_COMMAND} -E
+-   $<IF:$<STREQUAL:$<TARGET_PROPERTY:ortools,TYPE>,SHARED_LIBRARY>,copy,true>
+-   $<$<STREQUAL:$<TARGET_PROPERTY:ortools,TYPE>,SHARED_LIBRARY>:$<TARGET_SONAME_FILE:ortools>>
+-   ${PYTHON_PROJECT}/.libs
++    $<IF:${is_ortools_shared},copy,true>
++    $<${need_unix_ortools_lib}:$<TARGET_SONAME_FILE:${PROJECT_NAMESPACE}::ortools>>
++    $<${need_windows_ortools_lib}:$<TARGET_FILE:${PROJECT_NAMESPACE}::ortools>>
++    ${PYTHON_PROJECT}/.libs
++
+   COMMAND ${CMAKE_COMMAND} -E touch ${PROJECT_BINARY_DIR}/python/ortools_timestamp
+   MAIN_DEPENDENCY
+     ortools/python/setup.py.in

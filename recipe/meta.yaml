@@ -21,6 +21,7 @@ source:
       - patches/0003-use-better-patches-for-vendored-pybind11_abseil.patch
       - patches/0004-use-better-patches-for-vendored-pybind11_protobuf.patch
       - patches/0005-msvc-lnk1189.patch # [win]
+      - patches/0006-fix-windows-target-file.patch # [win]
 
 # The meta package
 build:
