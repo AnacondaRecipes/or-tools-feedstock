@@ -21,13 +21,11 @@ source:
       - patches/0003-use-better-patches-for-vendored-pybind11_abseil.patch
       - patches/0004-use-better-patches-for-vendored-pybind11_protobuf.patch
       - patches/0005-fix-msvc-lnk1189.patch # [win]
-      - patches/0006-fix-windows-target-file.patch # [win]
-      - patches/0007-fix-windows-protobuf-exports.patch # [win]
 
 # The meta package
 build:
   number: 1
-  skip: true  # [py<37 or py>312]
+  skip: true  # [not win or py<37 or py>312]
 
 requirements:
   build:
@@ -77,11 +75,12 @@ outputs:
         - ortools-cpp ={{ version }}
     test:
       commands:
-        - test -f $PREFIX/lib/libortools${SHLIB_EXT}
-        - test -f $PREFIX/lib/cmake/ortools/ortoolsTargets.cmake
-        - test -f $PREFIX/lib/cmake/ortools/ortoolsConfig.cmake
-        - test -f $PREFIX/include/ortools_export.h
-        - test -f $PREFIX/include/ortools/algorithms/dense_doubly_linked_list.h
+        - test -f $PREFIX/lib/libortools${SHLIB_EXT} # [not win]
+        - test -f $PREFIX/lib/cmake/ortools/ortoolsTargets.cmake # [not win]
+        - test -f $PREFIX/lib/cmake/ortools/ortoolsConfig.cmake # [not win]
+        - test -f $PREFIX/include/ortools_export.h # [not win]
+        - test -f $PREFIX/include/ortools/algorithms/dense_doubly_linked_list.h # [not win]
+        - if not exist "%LIBRARY_PREFIX%\include\ortools_export.h" exit /b 1  # [win]
 
   # for compatibility with previous output "ortools-cpp"
   - name: ortools-cpp
@@ -97,7 +96,7 @@ outputs:
       commands:
         # just make sure that everything worked,
         # the rest are already tested in libortools
-        - test -f $PREFIX/lib/libortools${SHLIB_EXT}
+        - test -f $PREFIX/lib/libortools${SHLIB_EXT} # [not win]
 
   # The python package.
   - name: ortools-python
@@ -163,9 +162,11 @@ outputs:
         - ortools.linear_solver.pywraplp
       commands:
         - pip check
-        - ${PYTHON} cmake/samples/python/sample.py
-        - ${PYTHON} ortools/sat/samples/assignment_sat.py
+        - python cmake/samples/python/sample.py
+        - python ortools/sat/samples/assignment_sat.py
         - test -f ${SP_DIR}/ortools/.libs/libortools.9.dylib  # [osx and x86_64]
+        # Verify the Python API and CBC solver work regardless of static/shared linking.
+        - python -c "from ortools.linear_solver import pywraplp; s = pywraplp.Solver.CreateSolver('CBC'); assert s is not None; x = s.IntVar(0, 1, 'x'); s.Maximize(x); assert s.Solve() == pywraplp.Solver.OPTIMAL"
       source_files:
         - cmake/samples/python/sample.py
         - ortools/sat/samples/assignment_sat.py

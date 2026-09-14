@@ -41,9 +41,6 @@ if errorlevel 1 exit /b 1
 cmake --build build -j %CPU_COUNT%
 if errorlevel 1 exit /b 1
 
-copy build\bin\ortools.dll %PREFIX%\Library\bin
-if errorlevel 1 exit /b 1
-
 echo Install begins here
 
 %PYTHON% -m pip install --no-index --find-links=build\python\dist ortools --ignore-installed --no-deps --no-build-isolation -vv
