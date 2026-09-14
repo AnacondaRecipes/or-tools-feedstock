@@ -97,7 +97,8 @@ outputs:
 
   # The python package.
   - name: ortools-python
-    script: build-python.sh
+    script: build-python.sh # [not win]
+    script: build-python.bat # [win]
     build:
     requirements:
       build:
